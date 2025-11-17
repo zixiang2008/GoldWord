@@ -1,0 +1,15 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# 预提交钩子：生成并更新所有层级的 controls 文档
+set -e
+echo "[husky] 生成嵌套与根目录版 docs/controls.md ..."
+node GoldWord/scripts/generate-controls-doc-nested.js
+node GoldWord/scripts/generate-controls-doc.js
+
+# 自动纳入变更，避免工作区遗留未提交的文档更新
+git add GoldWord/docs/controls.md GoldWord/GoldWord/GoldWord/docs/controls.md 2>/dev/null || true
+echo "[husky] 文档同步完成"
+
+echo "[husky] 检查目录命名规则..."
+node GoldWord/scripts/check-naming.js

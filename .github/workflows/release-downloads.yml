@@ -1,0 +1,102 @@
+name: Build iPad IPA and Publish Downloads
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Version (e.g. 1.0.2). If empty, use package.json
+        required: false
+        type: string
+
+jobs:
+  build_ipa:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: ver
+        run: |
+          V_INPUT="${{ github.event.inputs.release_version }}"
+          if [ -n "$V_INPUT" ]; then echo "VERSION=$V_INPUT" >> $GITHUB_OUTPUT; exit 0; fi
+          node -e "const p=require('./GoldWord/GoldWord/package.json'); console.log('VERSION='+p.version)" >> $GITHUB_OUTPUT
+
+      - name: Setup Xcode keychain
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_CERT_P12_PASSWORD }}
+
+      - name: Write provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.PROVISION_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: Archive (Release)
+        run: |
+          xcodebuild -workspace ios/GoldWord.xcworkspace \
+                     -scheme GoldWord \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     -archivePath ios/build/GoldWord.xcarchive archive
+
+      - name: Export IPA (Ad-Hoc)
+        run: |
+          cat > ios/ExportOptions.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>ad-hoc</string>
+            <key>compileBitcode</key><false/>
+            <key>destination</key><string>export</string>
+            <key>stripSwiftSymbols</key><true/>
+            <key>signingStyle</key><string>manual</string>
+            <key>teamID</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>provisioningProfiles</key><dict>
+              <key>${{ secrets.APP_BUNDLE_ID }}</key><string>${{ secrets.PROVISION_PROFILE_NAME }}</string>
+            </dict>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+                     -archivePath ios/build/GoldWord.xcarchive \
+                     -exportOptionsPlist ios/ExportOptions.plist \
+                     -exportPath ios/build/ipa
+          mv ios/build/ipa/*.ipa ios/build/ipa/GoldWord-iPad-${{ steps.ver.outputs.VERSION }}.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GoldWord-iPad-${{ steps.ver.outputs.VERSION }}.ipa
+          path: ios/build/ipa/GoldWord-iPad-${{ steps.ver.outputs.VERSION }}.ipa
+
+  publish_downloads:
+    needs: build_ipa
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: GoldWord-iPad-${{ needs.build_ipa.outputs.VERSION }}.ipa
+          path: ios/build/ipa
+        continue-on-error: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Publish downloads JSON and copy artifacts
+        run: |
+          node GoldWord/GoldWord/scripts/publish-downloads.js
+
+      - name: Commit JSON updates
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add GoldWord/GoldWord/www/downloads/
+          git commit -m "chore: update downloads JSON to ${{ needs.build_ipa.outputs.VERSION }}" || echo "No changes"
+          git push

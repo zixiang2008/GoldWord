@@ -1,0 +1,29 @@
+name: Controls Doc Sync
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  verify-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate controls docs
+        run: |
+          node GoldWord/GoldWord/GoldWord/scripts/generate-controls-doc.js
+          node GoldWord/scripts/generate-controls-doc.js
+      - name: Check diff
+        run: |
+          git status --porcelain
+          if ! git diff --exit-code; then
+            echo "Docs out of sync. Please run 'npm run docs:controls' and commit the changes." >&2
+            exit 1
+          fi

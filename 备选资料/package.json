@@ -1,0 +1,27 @@
+{
+  "name": "goldword",
+  "version": "1.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:controls": "node GoldWord/scripts/generate-controls-doc-nested.js && node GoldWord/scripts/generate-controls-doc.js",
+    "docs:controls:nested": "node GoldWord/scripts/generate-controls-doc-nested.js",
+    "docs:controls:root": "node GoldWord/scripts/generate-controls-doc.js",
+    "prepare": "husky install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "GoldWord — 每一个记住的单词，都是一枚金币",
+  "dependencies": {
+    "lucide-react": "^0.548.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "typescript": "^5.9.3",
+    "husky": "^9.1.6"
+  }
+}

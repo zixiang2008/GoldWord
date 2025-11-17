@@ -1,0 +1,123 @@
+name: Release and Upload Assets
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: {}
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create.outputs.upload_url }}
+      tag_name: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+      - name: Create GitHub Release
+        id: create
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: ${{ steps.tag.outputs.tag }}
+          draft: false
+          prerelease: false
+
+  build_android:
+    runs-on: ubuntu-latest
+    needs: create_release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build Android phone/pad release
+        working-directory: ./GoldWord/GoldWord/android
+        run: |
+          ./gradlew assemblePhoneRelease assemblePadRelease
+      - name: Upload Android Phone APK
+        if: ${{ hashFiles('GoldWord/GoldWord/android/app/build/outputs/apk/phone/release/app-phone-release.apk') != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: GoldWord/GoldWord/android/app/build/outputs/apk/phone/release/app-phone-release.apk
+          asset_name: GoldWord-Android-Phone-${{ needs.create_release.outputs.tag_name }}.apk
+          asset_content_type: application/vnd.android.package-archive
+      - name: Upload Android Pad APK
+        if: ${{ hashFiles('GoldWord/GoldWord/android/app/build/outputs/apk/pad/release/app-pad-release.apk') != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: GoldWord/GoldWord/android/app/build/outputs/apk/pad/release/app-pad-release.apk
+          asset_name: GoldWord-Android-Pad-${{ needs.create_release.outputs.tag_name }}.apk
+          asset_content_type: application/vnd.android.package-archive
+
+  upload_desktop:
+    runs-on: ubuntu-latest
+    needs: create_release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Upload Windows setup
+        if: ${{ hashFiles('GoldWord/GoldWord/desktop/dist/GoldWord---win-setup.exe') != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: GoldWord/GoldWord/desktop/dist/GoldWord---win-setup.exe
+          asset_name: GoldWord-win-setup-${{ needs.create_release.outputs.tag_name }}.exe
+          asset_content_type: application/octet-stream
+      - name: Upload macOS dmg
+        if: ${{ hashFiles('GoldWord/GoldWord/desktop/dist/GoldWord-*.dmg') != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/GoldWord/GoldWord/desktop/dist/GoldWord-1.0.0.dmg
+          asset_name: GoldWord-mac-${{ needs.create_release.outputs.tag_name }}.dmg
+          asset_content_type: application/octet-stream
+      - name: Upload macOS zip
+        if: ${{ hashFiles('GoldWord/GoldWord/desktop/dist/GoldWord-*.zip') != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/GoldWord/GoldWord/desktop/dist/GoldWord-1.0.0-mac.zip
+          asset_name: GoldWord-mac-${{ needs.create_release.outputs.tag_name }}.zip
+          asset_content_type: application/zip
+
+  upload_ios:
+    runs-on: macos-latest
+    needs: create_release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Upload iPad IPA
+        if: ${{ hashFiles('GoldWord/GoldWord/ios/**/*.ipa') != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/GoldWord/GoldWord/ios/App.ipa
+          asset_name: GoldWord-iPad-${{ needs.create_release.outputs.tag_name }}.ipa
+          asset_content_type: application/octet-stream
+
