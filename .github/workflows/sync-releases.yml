@@ -1,0 +1,40 @@
+name: Sync Latest Downloads to GitHub Releases
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'GoldWord/GoldWord/www/downloads/latest.json'
+      - 'GoldWord/GoldWord/www/downloads/**/index.json'
+      - 'GoldWord/GoldWord/www/downloads/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read latest version
+        id: ver
+        run: |
+          node -e "const fs=require('fs');const p='GoldWord/GoldWord/www/downloads/latest.json';const v=JSON.parse(fs.readFileSync(p,'utf8')).latest||'';if(!v){process.exit(1)};console.log('VERSION='+v)" >> $GITHUB_OUTPUT
+
+      - name: Prepare release notes
+        id: notes
+        run: |
+          node -e "const fs=require('fs');const v='${{ steps.ver.outputs.VERSION }}';const idx=`GoldWord/GoldWord/www/downloads/${v}/index.json`;let t='';try{const j=JSON.parse(fs.readFileSync(idx,'utf8'));t='Assets:\n'+j.items.map(i=>`- ${i.name}`).join('\n')}catch{};console.log('NOTES<<EOF\n'+t+'\nEOF')" >> $GITHUB_OUTPUT
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.VERSION }}
+          name: GoldWord v${{ steps.ver.outputs.VERSION }}
+          body: ${{ steps.notes.outputs.NOTES }}
+          draft: false
+          prerelease: false
+          files: |
+            GoldWord/GoldWord/www/downloads/${{ steps.ver.outputs.VERSION }}/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
