@@ -53,10 +53,10 @@
       const win   = pick(/win-setup/i);
       const macD  = pick(/mac-.*\.dmg/i);
       const macZ  = pick(/mac-.*\.zip/i);
-      const ipad  = pick(/iPad.*\.ipa/i);
+      const ios   = pick(/iOS.*\.ipa/i);
       card('Android 手机版 APK', phone?.name, phone?.browser_download_url);
       card('Android 平板版 APK', pad?.name, pad?.browser_download_url);
-      card('iPad 安装包（IPA）', ipad?.name, ipad?.browser_download_url);
+      card('iOS 安装包（IPA）', ios?.name, ios?.browser_download_url);
       card('Windows 安装包', win?.name, win?.browser_download_url);
       card('macOS 安装包', (macD?.name||macZ?.name), (macD?.browser_download_url||macZ?.browser_download_url));
     }catch(e){ verEl.textContent='加载失败' }
