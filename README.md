@@ -1,6 +1,6 @@
 # GoldWord
 
-![Logo](GoldWord/GoldWord/www/icons/icon-192x192.png)
+https://github.com/zixiang2008/GoldWord/tree/main/icons#:~:text=8%20minutes%20ago-,icon%2D192x192.png,-Add%20files%20via
 
 [![PWA](https://img.shields.io/badge/PWA-ready-blue)](#)
 [![Platforms](https://img.shields.io/badge/platforms-Web%20%7C%20Electron%20%7C%20Android%20%7C%20iOS-brightgreen)](#)
