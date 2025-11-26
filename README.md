@@ -1,5 +1,4 @@
 # GoldWord
-/GoldWord/blob/main/icons/icon-512x512.png
 
 [![PWA](https://img.shields.io/badge/PWA-ready-blue)](#)
 [![Platforms](https://img.shields.io/badge/platforms-Web%20%7C%20Electron%20%7C%20Android%20%7C%20iOS-brightgreen)](#)
