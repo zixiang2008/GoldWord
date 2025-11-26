@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-11-23T18:38:23.040Z",
+  "files": {
+    "app-cdn.html": {
+      "size": 11002,
+      "status": "copied"
+    },
+    "404.html": {
+      "size": 7026,
+      "status": "copied"
+    },
+    "_redirects": {
+      "size": 1060,
+      "status": "copied"
+    },
+    "netlify.toml": {
+      "size": 1533,
+      "status": "copied"
+    },
+    "cdn-links-generated.json": {
+      "size": 1205,
+      "status": "copied"
+    },
+    "cdn-mapping-config.json": {
+      "size": 6869,
+      "status": "copied"
+    },
+    "downloads/latest.json": {
+      "size": 18,
+      "status": "copied"
+    },
+    "downloads/1.0.3/index.json": {
+      "size": 1122,
+      "status": "copied"
+    },
+    "1.0.3/goldword-android-pad-1.0.3.apk": {
+      "size": 3333933,
+      "status": "copied"
+    },
+    "1.0.3/goldword-android-phone-1.0.3.apk": {
+      "size": 3333933,
+      "status": "copied"
+    },
+    "1.0.3/goldword-mac-1.0.3.dmg": {
+      "size": 802779940,
+      "status": "copied"
+    },
+    "1.0.3/goldword-mac-1.0.3.zip": {
+      "size": 797423043,
+      "status": "copied"
+    },
+    "1.0.3/goldword-win-setup-1.0.3.zip": {
+      "size": 5079023319,
+      "status": "copied"
+    }
+  },
+  "totalSize": 6685924003,
+  "fileCount": 13
+}

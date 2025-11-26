@@ -1,0 +1,40 @@
+# Netlify重定向配置
+# 用于解决404错误和优化URL结构
+
+# 下载页面重定向
+/app-cdn.html /app-cdn.html 200
+/downloads-cdn.html /app-cdn.html 301
+/downloads.html /app-cdn.html 301
+/download /app-cdn.html 301
+
+# 版本重定向 (保持向后兼容)
+/v1.0.3 /app-cdn.html 301
+/v1.0.2 /app-cdn.html 301
+/latest /app-cdn.html 301
+
+# CDN文件代理 (需要Worker部署后启用)
+# 这些规则将在Worker部署完成后启用
+# /1.0.2/* https://goldword-cdn-worker.caishen.us.kg/1.0.2/:splat 200
+# /1.0.3/* https://goldword-cdn-worker.caishen.us.kg/1.0.3/:splat 200
+
+# 版本文件优先使用站点本地静态文件
+/1.0.2/* /1.0.2/:splat 200
+/1.0.3/* /1.0.3/:splat 200
+
+# API端点 (预留)
+/api/download/* /.netlify/functions/download-proxy 200
+/api/stats /.netlify/functions/download-stats 200
+
+# 静态资源
+/assets/* /assets/:splat 200
+/css/* /css/:splat 200
+/js/* /js/:splat 200
+/images/* /images/:splat 200
+
+# 健康检查
+/health /health.json 200
+/status /status.json 200
+
+# 错误页面
+/404.html /404.html 404
+/500.html /500.html 500

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>调试页</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px;}
+    .ok{color:#0a7;} .err{color:#c00}
+    pre{background:#f7f7f7;border:1px solid #eee;padding:12px;overflow:auto}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    .card{border:1px solid #e3e3e3;border-radius:8px;padding:12px}
+    h2{margin:0 0 8px}
+    .small{font-size:12px;color:#666}
+  </style>
+</head>
+<body>
+  <h1>GoldWord 调试</h1>
+  <div id="status" class="small"></div>
+  <div class="grid">
+    <div class="card"><h2>服务状态</h2><pre id="srv"></pre></div>
+    <div class="card"><h2>Service Worker</h2><pre id="sw"></pre></div>
+    <div class="card"><h2>缓存列表</h2><pre id="cache"></pre></div>
+    <div class="card"><h2>网络测试</h2><pre id="net"></pre></div>
+  </div>
+  <script>
+    const q=new URLSearchParams(location.search); const v=q.get('v')||'';
+    const statusEl=document.getElementById('status');
+    function log(el, data){ el.textContent=typeof data==='string'?data:JSON.stringify(data,null,2); }
+    (function(){
+      const info={ url:location.href, vParam:v, time:new Date().toISOString() };
+      log(document.getElementById('srv'), info);
+    })();
+    (async function(){
+      const swEl=document.getElementById('sw');
+      const list = navigator.serviceWorker?await navigator.serviceWorker.getRegistrations():[];
+      const active = navigator.serviceWorker && navigator.serviceWorker.controller?true:false;
+      const data={ supported:!!navigator.serviceWorker, registrations:list.map(r=>({scope:r.scope})), activeController:active };
+      if(v==='sw4' && list[0]){ try{ await list[0].update(); data.updated=true; }catch(e){ data.updateError=String(e); } }
+      log(swEl, data);
+    })();
+    (async function(){
+      const cacheEl=document.getElementById('cache');
+      const names = await caches.keys();
+      const entries=[];
+      for(const n of names){ const c=await caches.open(n); const reqs=await c.keys(); entries.push({ name:n, count:reqs.length, items:reqs.slice(0,10).map(r=>r.url) }); }
+      log(cacheEl, entries);
+    })();
+    (async function(){
+      const netEl=document.getElementById('net');
+      const urls=['/','/index.html','/app.js','/manifest.json'];
+      const results=[];
+      for(const u of urls){ try{ const r=await fetch(u,{cache:'no-store'}); results.push({ url:u, ok:r.ok, status:r.status, type:r.type }); }catch(e){ results.push({ url:u, ok:false, error:String(e) }); } }
+      log(netEl, results);
+    })();
+  </script>
+</body>
+</html>

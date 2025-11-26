@@ -1,0 +1,14 @@
+{
+  "type": "deployment-package",
+  "timestamp": "2025-11-23T18:38:39.369Z",
+  "files": [
+    "app-cdn.html",
+    "404.html",
+    "_redirects",
+    "netlify.toml",
+    "cdn-links-generated.json",
+    "cdn-mapping-config.json"
+  ],
+  "directory": "netlify-deploy-package",
+  "instructions": "将此目录中的所有文件上传到Netlify"
+}

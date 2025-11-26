@@ -1,0 +1,74 @@
+[build]
+  publish = "."
+  command = "echo 'Build completed'"
+
+# 核心重定向规则 - 修复404错误的关键配置
+[[redirects]]
+  from = "/downloads-cdn.html"
+  to = "/app-cdn.html"
+  status = 301
+
+[[redirects]]
+  from = "/downloads.html"
+  to = "/app-cdn.html"
+  status = 301
+
+[[redirects]]
+  from = "/download"
+  to = "/app-cdn.html"
+  status = 301
+
+# 版本重定向
+[[redirects]]
+  from = "/v1.0.3"
+  to = "/app-cdn.html"
+  status = 301
+
+[[redirects]]
+  from = "/v1.0.2"
+  to = "/app-cdn.html"
+  status = 301
+
+[[redirects]]
+  from = "/latest"
+  to = "/app-cdn.html"
+  status = 301
+
+# 下载文件重定向到GitHub
+[[redirects]]
+  from = "/1.0.2/*"
+  to = "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/:splat"
+  status = 302
+
+[[redirects]]
+  from = "/1.0.3/*"
+  to = "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/:splat"
+  status = 302
+
+# 安全头部设置
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+# HTML文件缓存设置
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+    
+# 下载文件缓存设置
+[[headers]]
+  for = "/1.0.2/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*"
+    
+[[headers]]
+  for = "/1.0.3/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*"
