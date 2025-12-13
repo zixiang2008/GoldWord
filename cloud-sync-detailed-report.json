@@ -1,0 +1,267 @@
+{
+  "timestamp": "2025-11-21T19:35:01.601Z",
+  "systemStatus": {
+    "timestamp": "2025-11-21T19:35:01.601Z",
+    "isSyncing": false,
+    "autoSync": true,
+    "syncInterval": 30000,
+    "lastSync": {
+      "timestamp": "2025-11-21T19:35:01.599Z",
+      "duration": 6018,
+      "totalFiles": 6,
+      "successful": 6,
+      "failed": 0,
+      "results": [
+        {
+          "success": true,
+          "fileName": "app-cdn.html",
+          "size": 11405,
+          "cloudUrl": "https://goldword-cdn.r2.com/app-cdn.html",
+          "timestamp": "2025-11-21T19:34:56.583Z"
+        },
+        {
+          "success": true,
+          "fileName": "cdn-links-generated.json",
+          "size": 3958,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-links-generated.json",
+          "timestamp": "2025-11-21T19:34:57.585Z"
+        },
+        {
+          "success": true,
+          "fileName": "cdn-mapping-config.json",
+          "size": 6869,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-mapping-config.json",
+          "timestamp": "2025-11-21T19:34:58.587Z"
+        },
+        {
+          "success": true,
+          "fileName": "_redirects",
+          "size": 1178,
+          "cloudUrl": "https://goldword-cdn.r2.com/_redirects",
+          "timestamp": "2025-11-21T19:34:59.590Z"
+        },
+        {
+          "success": true,
+          "fileName": "netlify.toml",
+          "size": 2629,
+          "cloudUrl": "https://goldword-cdn.r2.com/netlify.toml",
+          "timestamp": "2025-11-21T19:35:00.591Z"
+        },
+        {
+          "success": true,
+          "fileName": "downloads-cdn.html",
+          "size": 11241,
+          "cloudUrl": "https://goldword-cdn.r2.com/downloads-cdn.html",
+          "timestamp": "2025-11-21T19:35:01.594Z"
+        }
+      ],
+      "successfulFiles": [
+        {
+          "fileName": "app-cdn.html",
+          "size": 11405,
+          "cloudUrl": "https://goldword-cdn.r2.com/app-cdn.html",
+          "timestamp": "2025-11-21T19:34:56.583Z"
+        },
+        {
+          "fileName": "cdn-links-generated.json",
+          "size": 3958,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-links-generated.json",
+          "timestamp": "2025-11-21T19:34:57.585Z"
+        },
+        {
+          "fileName": "cdn-mapping-config.json",
+          "size": 6869,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-mapping-config.json",
+          "timestamp": "2025-11-21T19:34:58.587Z"
+        },
+        {
+          "fileName": "_redirects",
+          "size": 1178,
+          "cloudUrl": "https://goldword-cdn.r2.com/_redirects",
+          "timestamp": "2025-11-21T19:34:59.590Z"
+        },
+        {
+          "fileName": "netlify.toml",
+          "size": 2629,
+          "cloudUrl": "https://goldword-cdn.r2.com/netlify.toml",
+          "timestamp": "2025-11-21T19:35:00.591Z"
+        },
+        {
+          "fileName": "downloads-cdn.html",
+          "size": 11241,
+          "cloudUrl": "https://goldword-cdn.r2.com/downloads-cdn.html",
+          "timestamp": "2025-11-21T19:35:01.594Z"
+        }
+      ],
+      "failedFiles": []
+    },
+    "totalSyncs": 1,
+    "cloudStorage": {
+      "enabled": true,
+      "provider": "r2",
+      "bucket": "goldword-cdn",
+      "region": "auto",
+      "endpoint": "",
+      "accessKey": "",
+      "secretKey": "",
+      "accountId": ""
+    },
+    "files": [
+      {
+        "fileName": "app-cdn.html",
+        "exists": true,
+        "size": 11405,
+        "modified": "2025-11-21T19:17:54.653Z",
+        "checksum": "c3c729ab660b2b7de6dedd0467e62c8d",
+        "changed": false,
+        "cloudUrl": "https://goldword-cdn.r2.com/app-cdn.html"
+      },
+      {
+        "fileName": "cdn-links-generated.json",
+        "exists": true,
+        "size": 3958,
+        "modified": "2025-11-21T18:26:06.631Z",
+        "checksum": "d781adb270525847395ccc7d7d0d23e4",
+        "changed": false,
+        "cloudUrl": "https://goldword-cdn.r2.com/cdn-links-generated.json"
+      },
+      {
+        "fileName": "cdn-mapping-config.json",
+        "exists": true,
+        "size": 6869,
+        "modified": "2025-11-21T18:09:24.571Z",
+        "checksum": "1eb1d62a154fc84b46b6bb69141c7179",
+        "changed": false,
+        "cloudUrl": "https://goldword-cdn.r2.com/cdn-mapping-config.json"
+      },
+      {
+        "fileName": "_redirects",
+        "exists": true,
+        "size": 1178,
+        "modified": "2025-11-21T18:37:02.057Z",
+        "checksum": "d3ba94718d8b84cef8253b2bc5005b5d",
+        "changed": false,
+        "cloudUrl": "https://goldword-cdn.r2.com/_redirects"
+      },
+      {
+        "fileName": "netlify.toml",
+        "exists": true,
+        "size": 2629,
+        "modified": "2025-11-21T18:37:40.268Z",
+        "checksum": "09c63fad4c35b09f30a9158119829ac3",
+        "changed": false,
+        "cloudUrl": "https://goldword-cdn.r2.com/netlify.toml"
+      },
+      {
+        "fileName": "downloads-cdn.html",
+        "exists": true,
+        "size": 11241,
+        "modified": "2025-11-21T17:51:14.370Z",
+        "checksum": "a3c787a2894825f2ef607df1079a9a0d",
+        "changed": false,
+        "cloudUrl": "https://goldword-cdn.r2.com/downloads-cdn.html"
+      }
+    ]
+  },
+  "syncHistory": [
+    {
+      "timestamp": "2025-11-21T19:35:01.599Z",
+      "duration": 6018,
+      "totalFiles": 6,
+      "successful": 6,
+      "failed": 0,
+      "results": [
+        {
+          "success": true,
+          "fileName": "app-cdn.html",
+          "size": 11405,
+          "cloudUrl": "https://goldword-cdn.r2.com/app-cdn.html",
+          "timestamp": "2025-11-21T19:34:56.583Z"
+        },
+        {
+          "success": true,
+          "fileName": "cdn-links-generated.json",
+          "size": 3958,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-links-generated.json",
+          "timestamp": "2025-11-21T19:34:57.585Z"
+        },
+        {
+          "success": true,
+          "fileName": "cdn-mapping-config.json",
+          "size": 6869,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-mapping-config.json",
+          "timestamp": "2025-11-21T19:34:58.587Z"
+        },
+        {
+          "success": true,
+          "fileName": "_redirects",
+          "size": 1178,
+          "cloudUrl": "https://goldword-cdn.r2.com/_redirects",
+          "timestamp": "2025-11-21T19:34:59.590Z"
+        },
+        {
+          "success": true,
+          "fileName": "netlify.toml",
+          "size": 2629,
+          "cloudUrl": "https://goldword-cdn.r2.com/netlify.toml",
+          "timestamp": "2025-11-21T19:35:00.591Z"
+        },
+        {
+          "success": true,
+          "fileName": "downloads-cdn.html",
+          "size": 11241,
+          "cloudUrl": "https://goldword-cdn.r2.com/downloads-cdn.html",
+          "timestamp": "2025-11-21T19:35:01.594Z"
+        }
+      ],
+      "successfulFiles": [
+        {
+          "fileName": "app-cdn.html",
+          "size": 11405,
+          "cloudUrl": "https://goldword-cdn.r2.com/app-cdn.html",
+          "timestamp": "2025-11-21T19:34:56.583Z"
+        },
+        {
+          "fileName": "cdn-links-generated.json",
+          "size": 3958,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-links-generated.json",
+          "timestamp": "2025-11-21T19:34:57.585Z"
+        },
+        {
+          "fileName": "cdn-mapping-config.json",
+          "size": 6869,
+          "cloudUrl": "https://goldword-cdn.r2.com/cdn-mapping-config.json",
+          "timestamp": "2025-11-21T19:34:58.587Z"
+        },
+        {
+          "fileName": "_redirects",
+          "size": 1178,
+          "cloudUrl": "https://goldword-cdn.r2.com/_redirects",
+          "timestamp": "2025-11-21T19:34:59.590Z"
+        },
+        {
+          "fileName": "netlify.toml",
+          "size": 2629,
+          "cloudUrl": "https://goldword-cdn.r2.com/netlify.toml",
+          "timestamp": "2025-11-21T19:35:00.591Z"
+        },
+        {
+          "fileName": "downloads-cdn.html",
+          "size": 11241,
+          "cloudUrl": "https://goldword-cdn.r2.com/downloads-cdn.html",
+          "timestamp": "2025-11-21T19:35:01.594Z"
+        }
+      ],
+      "failedFiles": []
+    }
+  ],
+  "statistics": {
+    "totalSyncs": 1,
+    "successfulSyncs": 1,
+    "failedSyncs": 0,
+    "averageDuration": 6018,
+    "totalFilesSynced": 6,
+    "totalSuccessfulFiles": 6,
+    "totalFailedFiles": 0
+  }
+}

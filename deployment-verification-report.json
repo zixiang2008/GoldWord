@@ -1,0 +1,143 @@
+{
+  "timestamp": "2025-11-21T20:20:44.380Z",
+  "summary": {
+    "total": 5,
+    "passed": 2,
+    "failed": 3,
+    "successRate": 40
+  },
+  "results": [
+    {
+      "url": "https://caishen.us.kg/app-cdn.html",
+      "description": "CDN下载页面 (主页面)",
+      "expected": [
+        200
+      ],
+      "actual": 301,
+      "success": false,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "date": "Fri, 21 Nov 2025 20:20:43 GMT",
+        "location": "https://www.caishen.us.kg/app-cdn.html",
+        "server": "Netlify",
+        "strict-transport-security": "max-age=31536000",
+        "x-nf-request-id": "01KAM1726ACWTPAT01YZZW1SYM",
+        "content-length": "53"
+      }
+    },
+    {
+      "url": "https://www.caishen.us.kg/app-cdn.html",
+      "description": "CDN下载页面 (www子域)",
+      "expected": [
+        200
+      ],
+      "actual": 404,
+      "success": false,
+      "headers": {
+        "age": "66",
+        "cache-control": "public,max-age=0,must-revalidate",
+        "cache-status": "\"Netlify Edge\"; hit",
+        "content-length": "3449",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Fri, 21 Nov 2025 20:20:44 GMT",
+        "etag": "1763061223-ssl",
+        "server": "Netlify",
+        "strict-transport-security": "max-age=31536000",
+        "x-nf-request-id": "01KAM172AZ3QNG5Y0MCTJ1MAMB"
+      }
+    },
+    {
+      "url": "https://caishen.us.kg/downloads-cdn.html",
+      "description": "旧地址重定向",
+      "expected": [
+        301
+      ],
+      "actual": 301,
+      "success": true,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "date": "Fri, 21 Nov 2025 20:20:44 GMT",
+        "location": "https://www.caishen.us.kg/downloads-cdn.html",
+        "server": "Netlify",
+        "strict-transport-security": "max-age=31536000",
+        "x-nf-request-id": "01KAM172FKV7C0VG5WE1R2V1Q1",
+        "content-length": "59"
+      }
+    },
+    {
+      "url": "https://caishen.us.kg/",
+      "description": "主站点",
+      "expected": [
+        200,
+        301
+      ],
+      "actual": 301,
+      "success": true,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "date": "Fri, 21 Nov 2025 20:20:44 GMT",
+        "location": "https://www.caishen.us.kg/",
+        "server": "Netlify",
+        "strict-transport-security": "max-age=31536000",
+        "x-nf-request-id": "01KAM172M0NFB9SNV4YV3MFSZ3",
+        "content-length": "41"
+      }
+    },
+    {
+      "url": "https://caishen.us.kg/404.html",
+      "description": "404错误页面",
+      "expected": [
+        200
+      ],
+      "actual": 301,
+      "success": false,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "date": "Fri, 21 Nov 2025 20:20:44 GMT",
+        "location": "https://www.caishen.us.kg/404.html",
+        "server": "Netlify",
+        "strict-transport-security": "max-age=31536000",
+        "x-nf-request-id": "01KAM172RF8TZJF2QJZN6KN0KJ",
+        "content-length": "49"
+      }
+    }
+  ],
+  "localFiles": [
+    {
+      "file": "app-cdn.html",
+      "exists": true,
+      "size": 11405,
+      "status": "✅ 存在"
+    },
+    {
+      "file": "404.html",
+      "exists": true,
+      "size": 7026,
+      "status": "✅ 存在"
+    },
+    {
+      "file": "_redirects",
+      "exists": true,
+      "size": 1178,
+      "status": "✅ 存在"
+    },
+    {
+      "file": "netlify.toml",
+      "exists": true,
+      "size": 2606,
+      "status": "✅ 存在"
+    },
+    {
+      "file": "cdn-links-generated.json",
+      "exists": true,
+      "size": 3958,
+      "status": "✅ 存在"
+    },
+    {
+      "file": "cdn-mapping-config.json",
+      "exists": true,
+      "size": 6869,
+      "status": "✅ 存在"
+    }
+  ]
+}

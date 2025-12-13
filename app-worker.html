@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GoldWord 下载中心 - Worker加速</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;background:#fff;color:#333}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    h1{font-size:24px;margin:0 0 12px}
+    .ver{font-size:14px;color:#666;margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .card{border:1px solid #e5e5e5;border-radius:12px;padding:14px;background:#fafafa;transition:all .2s}
+    .card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);transform:translateY(-1px)}
+    .card h3{margin:0 0 8px;font-size:16px}
+    .card .desc{font-size:13px;color:#666;margin-bottom:8px}
+    .card .size-info{font-size:12px;color:#999;margin-bottom:8px}
+    .card .worker-badge{display:inline-block;background:#ff6b35;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;margin-bottom:8px}
+    .card .download-group{display:flex;gap:8px;flex-wrap:wrap}
+    .card a{display:inline-block;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s}
+    .card .worker-link{background:#007aff;color:#fff}
+    .card .worker-link:hover{background:#0056b3}
+    .card .github-link{background:#24292e;color:#fff}
+    .card .github-link:hover{background:#1a1e22}
+    .note{margin-top:20px;font-size:13px;color:#555;background:#f8f9fa;padding:16px;border-radius:8px}
+    .worker-notice{background:#e8f4fd;border:1px solid #b3d7f0;color:#0066cc;padding:12px;border-radius:8px;margin-bottom:16px;font-size:14px}
+    .worker-notice strong{color:#004499}
+    @media(max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:460px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>GoldWord 下载中心</h1>
+    <div class="ver" id="ver">当前版本：</div>
+    
+    <div class="worker-notice">
+      <strong>🚀 Worker加速下载</strong><br>
+      所有下载文件已通过CloudFlare Worker全球加速，下载速度提升显著。如遇问题，仍可通过GitHub原始链接下载。
+    </div>
+    
+    <div class="grid" id="grid"></div>
+    
+    <div class="note">
+      <div style="font-weight:600;margin-bottom:6px">使用指引</div>
+      <div style="margin-bottom:8px">💡 <strong>Worker加速</strong> - 通过CloudFlare全球网络分发，下载速度更快</div>
+      <div style="margin-bottom:8px">📱 <strong>移动设备</strong> - 根据设备类型选择对应版本获得最佳体验</div>
+      <div style="margin-bottom:8px">💻 <strong>桌面设备</strong> - Windows选择.exe安装包，macOS选择.dmg或.app.zip</div>
+      <div>⚠️ <strong>安全提示</strong> - 如系统拦截，请选择"仍要运行/保留"以继续安装</div>
+    </div>
+  </div>
+  
+  <script>
+  (async function(){
+    // ⚠️ 重要：请将此处的WORKER_SUBDOMAIN替换为您的实际Worker子域名
+    const WORKER_SUBDOMAIN = 'goldword-downloads-worker.caishen-us-kg.workers.dev';
+    const CDN_BASE = `https://${WORKER_SUBDOMAIN}`;
+    const GITHUB_BASE = 'https://github.com/zixiang2008/GoldWord/releases/download';
+    
+    const verEl = document.getElementById('ver');
+    const grid = document.getElementById('grid');
+    
+    function fmtSize(bytes) { 
+      if(!bytes && bytes!==0) return ''; 
+      const u=['B','KB','MB','GB']; 
+      let i=0; 
+      let v=Number(bytes); 
+      while(v>=1024&&i<u.length-1){ v/=1024; i++; } 
+      return `${v.toFixed(i?2:0)} ${u[i]}`; 
+    }
+    
+    function fmtDate(s) { 
+      try{ 
+        const d=new Date(s); 
+        if(isNaN(d.getTime())) return ''; 
+        const y=d.getFullYear(); 
+        const m=String(d.getMonth()+1).padStart(2,'0'); 
+        const da=String(d.getDate()).padStart(2,'0'); 
+        return `${y}-${m}-${da}`; 
+      } catch(_) { 
+        return ''; 
+      } 
+    }
+    
+    function createDownloadCard(title, description, workerUrl, githubUrl, size, mtime, fileName) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      const h3 = document.createElement('h3');
+      h3.textContent = title;
+      card.appendChild(h3);
+      
+      if(description) {
+        const desc = document.createElement('div');
+        desc.className = 'desc';
+        desc.textContent = description;
+        card.appendChild(desc);
+      }
+      
+      if(size || mtime) {
+        const sizeInfo = document.createElement('div');
+        sizeInfo.className = 'size-info';
+        sizeInfo.textContent = `文件大小：${size ? fmtSize(size) : '—'} ｜ 更新时间：${mtime ? fmtDate(mtime) : '—'}`;
+        card.appendChild(sizeInfo);
+      }
+      
+      const badge = document.createElement('div');
+      badge.className = 'worker-badge';
+      badge.textContent = 'Worker加速';
+      card.appendChild(badge);
+      
+      const downloadGroup = document.createElement('div');
+      downloadGroup.className = 'download-group';
+      
+      if(workerUrl) {
+        const workerLink = document.createElement('a');
+        workerLink.href = workerUrl;
+        workerLink.className = 'worker-link';
+        workerLink.textContent = 'Worker下载';
+        workerLink.target = '_blank';
+        downloadGroup.appendChild(workerLink);
+      }
+      
+      if(githubUrl) {
+        const githubLink = document.createElement('a');
+        githubLink.href = githubUrl;
+        githubLink.className = 'github-link';
+        githubLink.textContent = 'GitHub下载';
+        githubLink.target = '_blank';
+        downloadGroup.appendChild(githubLink);
+      }
+      
+      card.appendChild(downloadGroup);
+      return card;
+    }
+    
+    try {
+      // 获取版本信息
+      const latestRes = await fetch('./downloads/latest.json');
+      const latest = await latestRes.json();
+      verEl.textContent = `当前版本：${latest.version} (${fmtDate(latest.date)})`;
+      
+      // 获取下载列表
+      const indexRes = await fetch('./downloads/index.json');
+      const data = await indexRes.json();
+      
+      if (!data.releases || !data.releases.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#999;padding:40px;">暂无下载文件</div>';
+        return;
+      }
+      
+      // 按版本排序（最新的在前）
+      const sortedReleases = data.releases.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // 显示最新的几个版本
+      const displayReleases = sortedReleases.slice(0, 2);
+      
+      displayReleases.forEach(release => {
+        if (release.files && release.files.length) {
+          release.files.forEach(file => {
+            const workerUrl = `${CDN_BASE}/${release.version}/${file.name}`;
+            const githubUrl = `${GITHUB_BASE}/v${release.version}/${file.name}`;
+            
+            let title = file.name;
+            let description = '';
+            
+            // 根据文件名设置标题和描述
+            if (file.name.includes('mac') && file.name.includes('.dmg')) {
+              title = 'macOS 安装包（DMG）';
+              description = '适用于macOS系统的安装包，下载后双击安装';
+            } else if (file.name.includes('mac') && file.name.includes('.app.zip')) {
+              title = 'macOS 应用包（APP）';
+              description = 'macOS应用程序包，解压后直接使用';
+            } else if (file.name.includes('win')) {
+              title = 'Windows 安装包';
+              description = '适用于Windows系统的安装程序';
+            } else if (file.name.includes('android') && file.name.includes('pad')) {
+              title = 'Android 平板版';
+              description = '专为平板电脑优化的Android版本';
+            } else if (file.name.includes('android') && file.name.includes('phone')) {
+              title = 'Android 手机版';
+              description = '适用于Android手机的版本';
+            } else if (file.name.includes('ipad')) {
+              title = 'iPad 版';
+              description = '专为iPad优化的版本';
+            } else if (file.name.includes('ios')) {
+              title = 'iOS 版';
+              description = '适用于iPhone的版本';
+            } else if (file.name.includes('web')) {
+              title = 'Web 版';
+              description = '网页版，无需安装即可使用';
+            }
+            
+            const card = createDownloadCard(
+              title,
+              description,
+              workerUrl,
+              githubUrl,
+              file.size,
+              file.mtime,
+              file.name
+            );
+            
+            grid.appendChild(card);
+          });
+        }
+      });
+      
+    } catch (error) {
+      console.error('加载下载信息失败:', error);
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#d32f2f;padding:40px;">加载失败，请刷新页面重试</div>';
+    }
+  })();
+  </script>
+</body>
+</html>

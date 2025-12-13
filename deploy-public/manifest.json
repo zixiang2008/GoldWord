@@ -1,0 +1,30 @@
+{
+  "name": "GoldWord",
+  "short_name": "GoldWord",
+  "description": "每一个记住的单词，都是一枚金币",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f4f4f9",
+  "theme_color": "#007aff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-152x152.svg",
+      "sizes": "152x152",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

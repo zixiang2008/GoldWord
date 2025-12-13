@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without codesign/notarization'
+        required: false
+        default: 'false'
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    env:
+      SIGNING_IDENTITY: ${{ secrets.SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+      GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      DRY_RUN: ${{ github.event.inputs.dry_run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup keychain for codesign
+        if: env.SIGNING_IDENTITY != ''
+        run: |
+          KEYCHAIN=build.keychain
+          security create-keychain -p "$RUNNER_TEMP" "$KEYCHAIN"
+          security default-keychain -s "$KEYCHAIN"
+          security unlock-keychain -p "$RUNNER_TEMP" "$KEYCHAIN"
+          if [ -n "${{ secrets.MAC_CERT_P12 }}" ]; then
+            echo "${{ secrets.MAC_CERT_P12 }}" | base64 --decode > cert.p12
+            security import cert.p12 -k "$KEYCHAIN" -P "${{ secrets.MAC_CERT_PASSWORD }}" -T /usr/bin/codesign -T /usr/bin/security
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$RUNNER_TEMP" "$KEYCHAIN"
+          fi
+
+      - name: Import GPG key
+        if: env.GPG_PRIVATE_KEY != ''
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --yes --import
+          gpg --list-secret-keys || true
+
+      - name: Validate secrets
+        run: |
+          set +x
+          [ -n "$SIGNING_IDENTITY" ] || echo "WARN: SIGNING_IDENTITY not set"
+          [ -n "$APPLE_ID" ] || echo "WARN: APPLE_ID not set"
+          [ -n "$APP_SPECIFIC_PASSWORD" ] || echo "WARN: APP_SPECIFIC_PASSWORD not set"
+          [ -n "$TEAM_ID" ] || echo "WARN: TEAM_ID not set"
+          [ -n "$GPG_KEY_ID" ] || echo "INFO: GPG signing disabled"
+
+      - name: Install dependencies
+        run: |
+          brew update || true
+          brew install gpg || true
+
+      - name: Run release
+        run: |
+          set -euo pipefail
+          bash scripts/release.sh
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Android SDK
+        run: |
+          set -euo pipefail
+          ANDROID_SDK_ROOT="${RUNNER_TEMP}/android-sdk"
+          ANDROID_HOME="$ANDROID_SDK_ROOT"
+          mkdir -p "$ANDROID_SDK_ROOT"
+          curl -fsSL https://dl.google.com/android/repository/commandlinetools-mac-10406996_latest.zip -o cmdtools.zip
+          unzip -q cmdtools.zip -d "$ANDROID_SDK_ROOT"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          mv "$ANDROID_SDK_ROOT/cmdline-tools"/* "$ANDROID_SDK_ROOT/cmdline-tools/latest" || true
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "build-tools;34.0.0" "platforms;android-34"
+
+      - name: Build Android (APK/AAB)
+        run: |
+          set -euo pipefail
+          cd android
+          ./gradlew assembleRelease
+          ./gradlew bundleRelease
+          ls -la app/build/outputs/apk/release || true
+          ls -la app/build/outputs/bundle/release || true
+          cd ..
+
+      - name: Verify APK signatures and generate reports
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's/.*"version" *: *"\([^\"]*\)".*/\1/p' www/version.json | head -n1)
+          OUTDIR="downloads/${VERSION}"
+          mkdir -p "$OUTDIR"
+          APKSIGNER="$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
+          python3 scripts/apksign_report.py \
+            --apk android/app/build/outputs/apk/release/app-release.apk \
+            --aab android/app/build/outputs/bundle/release/app-release.aab \
+            --apksigner "$APKSIGNER" \
+            --out-json "$OUTDIR/apksign_report.json" \
+            --out-html "$OUTDIR/apksign_report.html"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloads-${{ github.sha }}
+          path: downloads/*
+
+  pr-validate:
+    runs-on: macos-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Dry run release
+        env:
+          DRY_RUN: 'true'
+        run: |
+          bash scripts/release.sh || true
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-logs-${{ github.sha }}
+          path: releases/**/installers/build_*.log

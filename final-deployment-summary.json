@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-11-22T08:01:57.387Z",
+  "site": "https://caishen.us.kg",
+  "files": [
+    "app-cdn.html",
+    "404.html",
+    "_redirects",
+    "netlify.toml",
+    "cdn-links-generated.json",
+    "cdn-mapping-config.json"
+  ],
+  "status": "ready_for_deployment",
+  "instructions": {
+    "netlify_console": "https://app.netlify.com",
+    "site_name": "caishen.us.kg",
+    "steps": [
+      "访问Netlify控制台",
+      "找到caishen.us.kg站点",
+      "进入Deploys页面",
+      "拖拽所有文件到部署区域",
+      "等待部署完成"
+    ]
+  },
+  "verification_urls": [
+    "https://caishen.us.kg/app-cdn.html",
+    "https://www.caishen.us.kg/app-cdn.html",
+    "https://caishen.us.kg/downloads-cdn.html"
+  ]
+}

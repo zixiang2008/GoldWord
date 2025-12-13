@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-11-25T07:57:10.439Z",
+  "totalFiles": 7,
+  "successfulFiles": 0,
+  "failedFiles": 7,
+  "successful": [],
+  "failed": [
+    {
+      "success": false,
+      "fileName": "app-cdn.html",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    },
+    {
+      "success": false,
+      "fileName": "cdn-links-generated.json",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    },
+    {
+      "success": false,
+      "fileName": "cdn-mapping-config.json",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    },
+    {
+      "success": false,
+      "fileName": "_redirects",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    },
+    {
+      "success": false,
+      "fileName": "netlify.toml",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    },
+    {
+      "success": false,
+      "fileName": "release-report.json",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    },
+    {
+      "success": false,
+      "fileName": "RELEASE_NOTES.md",
+      "error": "write EPROTO 402249F201000000:error:0A000410:SSL routines:ssl3_read_bytes:sslv3 alert handshake failure:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:1605:SSL alert number 40\n"
+    }
+  ],
+  "cloudUrls": [],
+  "options": {
+    "bidirectional": true,
+    "incremental": true
+  },
+  "logSync": {
+    "totalBatches": 1,
+    "successful": 0,
+    "failed": 1
+  },
+  "downloadUploads": {
+    "total": 6,
+    "successful": 0,
+    "failed": 6
+  }
+}

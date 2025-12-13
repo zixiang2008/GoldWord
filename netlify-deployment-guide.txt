@@ -1,0 +1,49 @@
+
+🚀 Netlify 部署修复指南
+==============================
+
+📋 问题分析:
+- 本地文件正常 (http://localhost:8080/app-cdn.html)
+- Netlify 部署失败，返回 404 错误
+- 可能原因: 配置文件错误或文件未正确上传
+
+📦 部署文件清单:
+✅ app-cdn.html (11405 bytes)
+✅ 404.html (7026 bytes)
+✅ _redirects (1178 bytes)
+✅ netlify.toml (1533 bytes)
+
+🔧 修复步骤:
+
+1️⃣ 访问 Netlify 控制台
+   网址: https://app.netlify.com
+
+2️⃣ 找到您的站点
+   站点名称: caishen.us.kg
+
+3️⃣ 手动部署文件
+   方法 A: 拖拽部署
+   - 进入站点概览页面
+   - 找到拖拽部署区域
+   - 拖拽以下文件到指定区域:
+          - app-cdn.html
+     - 404.html
+     - _redirects
+     - netlify.toml
+
+   方法 B: 触发重新部署
+   - 进入 "Deploys" 页面
+   - 点击 "Trigger deploy" → "Deploy site"
+   - 等待部署完成
+
+4️⃣ 验证部署结果
+   测试 URL: https://caishen.us.kg/app-cdn.html
+   期望结果: 200 OK (不再是 404)
+
+🎯 替代方案:
+如果上述方法无效，请尝试:
+- 检查域名 DNS 设置
+- 验证 Netlify 站点配置
+- 重新创建站点并重新部署
+
+⏰ 部署通常需要 1-2 分钟完成

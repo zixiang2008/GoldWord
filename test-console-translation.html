@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI翻译控制台测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007aff;
+        }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .console-line {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .console-success { color: #4caf50; }
+        .console-error { color: #f44336; }
+        .console-info { color: #2196f3; }
+        .console-warn { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ AI翻译控制台测试</h1>
+        
+        <div class="test-section">
+            <h3>测试按钮（带data-translate属性）</h3>
+            <button data-translate="true" id="btn1">🔄 AI翻译所有界面</button>
+            <button data-translate="true" id="btn2">📤 导出翻译数据</button>
+            <button data-translate="true" id="btn3">📥 导入翻译数据</button>
+            <button data-translate="true" id="btn4">个人中心</button>
+            <button data-translate="true" id="btn5">👍 要记得</button>
+            <button data-translate="true" id="btn6">👎 不记得</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>控制台测试</h3>
+            <button onclick="runConsoleTest()" id="consoleTestBtn">🚀 运行控制台测试</button>
+            <button onclick="clearConsole()" id="clearConsoleBtn">🗑️ 清除控制台</button>
+            <button onclick="testDirectTranslation()" id="directTestBtn">🧪 直接翻译测试</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>控制台输出</h3>
+            <div id="console-output" class="console-output">
+                <div class="console-line console-info">控制台就绪，点击按钮开始测试...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="language-system/language-system-complete-updated.js"></script>
+    <script>
+        let consoleOutput = null;
+        let isSystemReady = false;
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            consoleOutput = document.getElementById('console-output');
+            if (consoleOutput) {
+                log('🚀 页面加载完成，开始初始化...', 'info');
+                initializeSystem();
+            } else {
+                console.error('无法找到控制台输出元素');
+            }
+        });
+        
+        // 日志函数
+        function log(message, type = 'info') {
+            if (!consoleOutput) return;
+            
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleOutput.appendChild(line);
+            
+            // 滚动到底部
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            // 同时输出到浏览器控制台
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // 初始化系统
+        async function initializeSystem() {
+            try {
+                log('正在初始化LanguageSystem...', 'info');
+                
+                if (typeof LanguageSystem === 'undefined') {
+                    throw new Error('LanguageSystem 未定义，请检查脚本文件是否正确加载');
+                }
+                
+                log('✅ LanguageSystem 已找到', 'success');
+                
+                // 初始化系统
+                const initSuccess = await LanguageSystem.init({
+                    defaultLanguage: 'zh-CN',
+                    enableAutoDetect: true,
+                    enableCache: true,
+                    enableAI: true
+                });
+                
+                if (initSuccess) {
+                    log('✅ 系统初始化成功！', 'success');
+                    isSystemReady = true;
+                    
+                    // 启用测试按钮
+                    const buttons = ['consoleTestBtn', 'directTestBtn'];
+                    buttons.forEach(btnId => {
+                        const btn = document.getElementById(btnId);
+                        if (btn) btn.disabled = false;
+                    });
+                    
+                    log('🎯 系统已就绪，可以开始测试了！', 'success');
+                } else {
+                    throw new Error('系统初始化返回失败状态');
+                }
+                
+            } catch (error) {
+                log(`❌ 系统初始化失败: ${error.message}`, 'error');
+                log('请检查语言系统脚本是否正确加载', 'error');
+            }
+        }
+        
+        // 运行控制台测试
+        async function runConsoleTest() {
+            if (!isSystemReady) {
+                log('❌ 系统尚未就绪，请等待初始化完成', 'error');
+                return;
+            }
+            
+            log('🚀 开始控制台测试...', 'info');
+            
+            try {
+                // 测试1: 检查关键函数
+                log('📋 测试1: 检查关键函数', 'info');
+                const requiredFunctions = [
+                    'getAllTranslatableElements',
+                    'translateAllUIElements',
+                    'extractTranslatableText',
+                    'preserveFormatting',
+                    'safeUpdateText',
+                    'showNotification'
+                ];
+                
+                let allFunctionsExist = true;
+                requiredFunctions.forEach(funcName => {
+                    if (typeof LanguageSystem[funcName] === 'function') {
+                        log(`✅ ${funcName} 函数存在`, 'success');
+                    } else {
+                        log(`❌ ${funcName} 函数不存在`, 'error');
+                        allFunctionsExist = false;
+                    }
+                });
+                
+                if (!allFunctionsExist) {
+                    throw new Error('部分关键函数缺失');
+                }
+                
+                // 测试2: 获取可翻译元素
+                log('🔍 测试2: 获取可翻译元素', 'info');
+                const elements = LanguageSystem.getAllTranslatableElements();
+                log(`找到 ${elements.length} 个可翻译元素`, 'info');
+                
+                if (elements.length === 0) {
+                    log('⚠️ 没有找到可翻译元素，请检查data-translate属性', 'warn');
+                } else {
+                    elements.forEach((el, index) => {
+                        const text = el.textContent?.trim() || '无文本';
+                        log(`  ${index + 1}. ${el.tagName}: "${text}"`, 'info');
+                    });
+                }
+                
+                // 测试3: 文本提取功能
+                log('📝 测试3: 文本提取功能', 'info');
+                const testTexts = [
+                    '🔄 AI翻译所有界面',
+                    '个人中心',
+                    'https://example.com',
+                    '123',
+                    '',
+                    '   '
+                ];
+                
+                testTexts.forEach(text => {
+                    const extracted = LanguageSystem.extractTranslatableText(text);
+                    log(`  "${text}" → "${extracted}"`, extracted ? 'success' : 'warn');
+                });
+                
+                // 测试4: 格式保护功能
+                log('🎨 测试4: 格式保护功能', 'info');
+                const formatTests = [
+                    { original: '🔄 AI翻译所有界面', clean: 'AI翻译所有界面', translated: 'AI Translate All Interface' },
+                    { original: '个人中心 ▾', clean: '个人中心', translated: 'Personal Center' }
+                ];
+                
+                formatTests.forEach(test => {
+                    const result = LanguageSystem.preserveFormatting(test.original, test.clean, test.translated);
+                    log(`  "${test.original}" → "${result}"`, 'success');
+                });
+                
+                // 测试5: 安全更新文本
+                log('🔒 测试5: 安全更新文本功能', 'info');
+                const testElement = document.createElement('div');
+                testElement.textContent = '测试文本';
+                document.body.appendChild(testElement);
+                
+                LanguageSystem.safeUpdateText(testElement, 'Updated Text');
+                log(`  更新结果: "${testElement.textContent}"`, 'success');
+                
+                // 清理测试元素
+                document.body.removeChild(testElement);
+                
+                log('✅ 控制台测试完成！', 'success');
+                
+            } catch (error) {
+                log(`❌ 测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 直接翻译测试
+        async function testDirectTranslation() {
+            if (!isSystemReady) {
+                log('❌ 系统尚未就绪，请等待初始化完成', 'error');
+                return;
+            }
+            
+            log('🧪 开始直接翻译测试...', 'info');
+            
+            try {
+                // 切换到英文
+                log('正在切换到英文语言...', 'info');
+                await LanguageSystem.setLanguage('en-US');
+                log('✅ 已切换到英文', 'success');
+                
+                // 获取并显示当前按钮
+                const buttons = document.querySelectorAll('[data-translate="true"]');
+                log(`找到 ${buttons.length} 个可翻译按钮`, 'info');
+                
+                // 保存原始文本
+                const originalTexts = {};
+                buttons.forEach((btn, index) => {
+                    originalTexts[btn.id] = btn.textContent.trim();
+                    log(`  按钮 ${index + 1}: "${btn.textContent.trim()}"`, 'info');
+                });
+                
+                // 执行翻译
+                log('🔄 开始执行AI翻译...', 'info');
+                const result = await LanguageSystem.translateAllUIElements('en-US', (progress) => {
+                    log(`  进度: ${progress.percentage}% (${progress.translated}/${progress.total})`, 'info');
+                });
+                
+                log(`✅ 翻译完成！已翻译 ${result.translated}/${result.total} 个元素`, 'success');
+                
+                // 显示翻译结果
+                log('📊 翻译结果:', 'info');
+                buttons.forEach((btn, index) => {
+                    const original = originalTexts[btn.id];
+                    const translated = btn.textContent.trim();
+                    if (original !== translated) {
+                        log(`  ✅ "${original}" → "${translated}"`, 'success');
+                    } else {
+                        log(`  ⚠️ "${original}" (未变化)`, 'warn');
+                    }
+                });
+                
+                // 切换回中文
+                log('正在切换回中文...', 'info');
+                await LanguageSystem.setLanguage('zh-CN');
+                log('✅ 已切换回中文', 'success');
+                
+                log('🎯 直接翻译测试完成！', 'success');
+                
+            } catch (error) {
+                log(`❌ 直接翻译测试失败: ${error.message}`, 'error');
+                log('错误详情: ' + error.stack, 'error');
+            }
+        }
+        
+        // 清除控制台
+        function clearConsole() {
+            if (consoleOutput) {
+                consoleOutput.innerHTML = '<div class="console-line console-info">控制台已清除，准备开始新的测试...</div>';
+            }
+        }
+        
+        // 初始化时禁用测试按钮
+        window.addEventListener('DOMContentLoaded', function() {
+            const testButtons = ['consoleTestBtn', 'directTestBtn'];
+            testButtons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.disabled = true;
+            });
+        });
+    </script>
+</body>
+</html>

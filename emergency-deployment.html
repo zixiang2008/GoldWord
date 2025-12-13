@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldWord 紧急部署 - Netlify拖拽部署</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .emergency-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .emergency-notice h3 {
+            margin-bottom: 10px;
+            color: #d63031;
+        }
+        
+        .steps {
+            margin: 30px 0;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .step p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .files-list {
+            background: #f1f3f4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .files-list h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .netlify-link {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .netlify-button {
+            display: inline-block;
+            background: #00ad9f;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 173, 159, 0.3);
+        }
+        
+        .netlify-button:hover {
+            background: #009688;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 173, 159, 0.4);
+        }
+        
+        .alternative-methods {
+            background: #e8f4f8;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .alternative-methods h4 {
+            color: #2c5282;
+            margin-bottom: 15px;
+        }
+        
+        .method {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #bee5eb;
+        }
+        
+        .method h5 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .method p {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+            color: #495057;
+            overflow-x: auto;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 GoldWord 紧急部署</h1>
+            <p>解决 Netlify 404 错误的完整部署方案</p>
+        </div>
+        
+        <div class="emergency-notice">
+            <h3>⚠️ 紧急通知</h3>
+            <p>检测到生产环境存在 404 错误。请立即按照以下步骤进行部署修复。</p>
+        </div>
+        
+        <div class="steps">
+            <div class="step">
+                <h4>步骤 1: 准备部署文件</h4>
+                <p>以下文件已准备就绪，需要部署到 Netlify:</p>
+                <div class="files-list">
+                    <h4>📁 部署文件清单</h4>
+                    
+                        <div class="file-item">
+                            <span class="file-name">app-cdn.html</span>
+                            <span class="file-size">11405 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                        <div class="file-item">
+                            <span class="file-name">404.html</span>
+                            <span class="file-size">7026 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                        <div class="file-item">
+                            <span class="file-name">_redirects</span>
+                            <span class="file-size">1178 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                        <div class="file-item">
+                            <span class="file-name">netlify.toml</span>
+                            <span class="file-size">2606 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                        <div class="file-item">
+                            <span class="file-name">cdn-links-generated.json</span>
+                            <span class="file-size">3958 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                        <div class="file-item">
+                            <span class="file-name">cdn-mapping-config.json</span>
+                            <span class="file-size">6869 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                        <div class="file-item">
+                            <span class="file-name">index.html</span>
+                            <span class="file-size">119916 bytes</span>
+                            <span class="status ready">就绪</span>
+                        </div>
+                    
+                    
+                    
+                </div>
+            </div>
+            
+            <div class="step">
+                <h4>步骤 2: 访问 Netlify 控制台</h4>
+                <p>点击下面的按钮访问 Netlify 控制台，选择您的站点进行部署:</p>
+                <div class="netlify-link">
+                    <a href="https://app.netlify.com" target="_blank" class="netlify-button">
+                        🚀 访问 Netlify 控制台
+                    </a>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h4>步骤 3: 执行部署</h4>
+                <p>在 Netlify 控制台中:</p>
+                <ol style="margin-left: 20px; color: #666;">
+                    <li>找到您的站点 (caishen.us.kg)</li>
+                    <li>进入 "Deploys" 页面</li>
+                    <li>点击 "Trigger deploy" → "Deploy site"</li>
+                    <li>等待部署完成 (通常需要 1-2 分钟)</li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <h4>步骤 4: 验证部署</h4>
+                <p>部署完成后，请访问以下链接进行验证:</p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <div style="margin: 10px 0;"><strong>主页面:</strong> <a href="https://caishen.us.kg/app-cdn.html" target="_blank" style="color: #667eea;">https://caishen.us.kg/app-cdn.html</a></div>
+                    <div style="margin: 10px 0;"><strong>重定向测试:</strong> <a href="https://caishen.us.kg/downloads-cdn.html" target="_blank" style="color: #667eea;">https://caishen.us.kg/downloads-cdn.html</a></div>
+                    <div style="margin: 10px 0;"><strong>404页面:</strong> <a href="https://caishen.us.kg/404.html" target="_blank" style="color: #667eea;">https://caishen.us.kg/404.html</a></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alternative-methods">
+            <h4>🔧 替代部署方法</h4>
+            
+            <div class="method">
+                <h5>方法 A: Git 部署</h5>
+                <p>如果您已连接 Git 仓库，推送更改将自动触发部署:</p>
+                <div class="code-block">git add . && git commit -m "Deploy GoldWord CDN files" && git push origin main</div>
+            </div>
+            
+            <div class="method">
+                <h5>方法 B: 拖拽部署</h5>
+                <p>在 Netlify 控制台中，可以直接拖拽文件到部署区域进行快速部署。</p>
+            </div>
+            
+            <div class="method">
+                <h5>方法 C: Netlify CLI</h5>
+                <p>如果已配置 Netlify CLI，可以使用命令行部署:</p>
+                <div class="code-block">npx netlify deploy --prod --dir=.</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>部署时间: 2025-11-21T20:39:28.004Z</p>
+            <p>如果问题仍然存在，请检查 Netlify 部署日志或联系技术支持。</p>
+        </div>
+    </div>
+</body>
+</html>

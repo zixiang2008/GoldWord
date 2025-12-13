@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldWord 多语言演示</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .demo-content {
+            padding: 30px;
+        }
+        
+        .language-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 120px;
+        }
+        
+        .language-selector-wrapper {
+            display: inline-block;
+        }
+        
+        .demo-section {
+            margin-bottom: 30px;
+        }
+        
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .demo-button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .demo-button.primary {
+            background: #007aff;
+            color: white;
+        }
+        
+        .demo-button.primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .demo-button.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .demo-button.secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .demo-button.success {
+            background: #34c759;
+            color: white;
+        }
+        
+        .demo-button.success:hover {
+            background: #2aa047;
+        }
+        
+        .demo-button.warning {
+            background: #ff9500;
+            color: white;
+        }
+        
+        .demo-button.warning:hover {
+            background: #e0850c;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #007aff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .translation-demo {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .translation-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        
+        .translation-result {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            min-height: 60px;
+        }
+        
+        .system-status {
+            background: #e8f4fd;
+            border: 1px solid #007aff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,122,255,0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #007aff;
+        }
+        
+        .status-value {
+            color: #333;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 id="demoTitle">🌍 GoldWord 多语言系统</h1>
+            <p id="demoSubtitle">支持12种语言的智能翻译系统</p>
+        </div>
+        
+        <div class="demo-content">
+            <!-- 语言控制区域 -->
+            <div class="language-controls">
+                <div class="control-group">
+                    <span class="control-label">当前语言:</span>
+                    <div id="languageSelectorContainer" class="language-selector-wrapper">
+                        <!-- 语言选择器将在这里动态创建 -->
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <span class="control-label">快速操作:</span>
+                    <button id="translateUIBtn" class="demo-button primary">
+                        🔄 翻译全部界面
+                    </button>
+                    <button id="showSystemInfoBtn" class="demo-button secondary">
+                        📊 系统信息
+                    </button>
+                    <button id="exportDataBtn" class="demo-button success">
+                        💾 导出数据
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 界面演示区域 -->
+            <div class="demo-section">
+                <h2 id="demoSectionTitle">🎯 界面元素演示</h2>
+                
+                <div class="button-grid">
+                    <button id="autoPlayDemo" class="demo-button primary">▶️ 自动播放</button>
+                    <button id="flipCardDemo" class="demo-button primary">🔁 翻转卡片</button>
+                    <button id="rememberDemo" class="demo-button success">✅ 记得</button>
+                    <button id="speakWordDemo" class="demo-button primary">🔊 读单词</button>
+                    <button id="dontRememberDemo" class="demo-button warning">👎 不记得</button>
+                    <button id="addNewWordDemo" class="demo-button success">👍 要记住</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div id="totalWordsStat" class="stat-value">296</div>
+                        <div id="totalWordsLabel" class="stat-label">📊 总词数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="todayStudyStat" class="stat-value">12</div>
+                        <div id="todayStudyLabel" class="stat-label">📅 今日学习</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="reviewProgressStat" class="stat-value">35%</div>
+                        <div id="reviewProgressLabel" class="stat-label">🔁 复习进度</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="strictCoverageStat" class="stat-value">78%</div>
+                        <div id="strictCoverageLabel" class="stat-label">🧪 严格覆盖率</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 翻译演示区域 -->
+            <div class="demo-section">
+                <h2 id="translationDemoTitle">🔄 翻译演示</h2>
+                
+                <div class="translation-demo">
+                    <div class="control-group">
+                        <span class="control-label">源语言:</span>
+                        <select id="sourceLanguage" class="language-select">
+                            <option value="auto">自动检测</option>
+                            <option value="zh-CN" selected>🇨🇳 简体中文</option>
+                            <option value="en-US">🇺🇸 English</option>
+                            <option value="th">🇹🇭 ภาษาไทย</option>
+                            <option value="ja">🇯🇵 日本語</option>
+                            <option value="es">🇪🇸 Español</option>
+                        </select>
+                        
+                        <span class="control-label">目标语言:</span>
+                        <select id="targetLanguage" class="language-select">
+                            <option value="en-US" selected>🇺🇸 English</option>
+                            <option value="zh-CN">🇨🇳 简体中文</option>
+                            <option value="zh-TW">🇭🇰 繁體中文</option>
+                            <option value="th">🇹🇭 ภาษาไทย</option>
+                            <option value="ja">🇯🇵 日本語</option>
+                            <option value="es">🇪🇸 Español</option>
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="de">🇩🇪 Deutsch</option>
+                            <option value="ko">🇰🇷 한국어</option>
+                            <option value="ar">🇸🇦 العربية</option>
+                            <option value="ru">🇷🇺 Русский</option>
+                        </select>
+                    </div>
+                    
+                    <textarea id="translationInput" class="translation-input" rows="3" 
+                        placeholder="输入要翻译的文本..."></textarea>
+                    
+                    <button id="translateTextBtn" class="demo-button primary">
+                        🔄 翻译文本
+                    </button>
+                    
+                    <div id="translationResult" class="translation-result" style="display: none;">
+                        <strong>翻译结果:</strong><br>
+                        <span id="translatedText"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统状态区域 -->
+            <div class="demo-section">
+                <h2 id="systemStatusTitle">📊 系统状态</h2>
+                
+                <div id="systemStatus" class="system-status" style="display: none;">
+                    <!-- 系统状态将在这里动态显示 -->
+                </div>
+                
+                <div id="loadingStatus" class="loading"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入多语言系统文件 -->
+    <script src="language-system.json" type="application/json" id="languageData"></script>
+    <script src="language-manager.js"></script>
+    <script src="ai-translation-service.js"></script>
+    <script src="language-ui.js"></script>
+    <script src="language-system-complete.js"></script>
+    
+    <script>
+        // 演示页面脚本
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🎉 GoldWord多语言演示页面加载完成');
+            
+            // 初始化多语言系统
+            try {
+                const success = await LanguageSystem.init();
+                if (success) {
+                    console.log('✅ 多语言系统初始化成功');
+                    setupDemoPage();
+                } else {
+                    console.error('❌ 多语言系统初始化失败');
+                }
+            } catch (error) {
+                console.error('❌ 多语言系统初始化错误:', error);
+            }
+        });
+        
+        // 设置演示页面
+        function setupDemoPage() {
+            // 创建语言选择器
+            createLanguageSelector();
+            
+            // 绑定事件
+            bindDemoEvents();
+            
+            // 更新界面文本
+            updateDemoTexts();
+            
+            // 显示系统状态
+            showSystemStatus();
+            
+            // 隐藏加载状态
+            document.getElementById('loadingStatus').style.display = 'none';
+        }
+        
+        // 创建语言选择器
+        function createLanguageSelector() {
+            const container = document.getElementById('languageSelectorContainer');
+            const selector = LanguageUI.createLanguageSelector();
+            container.appendChild(selector);
+        }
+        
+        // 绑定演示事件
+        function bindDemoEvents() {
+            // 翻译界面按钮
+            document.getElementById('translateUIBtn').addEventListener('click', async function() {
+                const button = this;
+                const originalText = button.innerHTML;
+                
+                button.innerHTML = '🔄 翻译中...';
+                button.disabled = true;
+                
+                try {
+                    // 获取目标语言
+                    const targetLang = prompt('请选择目标语言:', 'en-US');
+                    if (!targetLang || !LanguageSystem.config.supportedLanguages.includes(targetLang)) {
+                        alert('请选择有效的语言代码');
+                        return;
+                    }
+                    
+                    // 执行界面翻译
+                    const success = await AITranslationService.translateAllUIElements(targetLang, (progress) => {
+                        button.innerHTML = `🔄 翻译中... ${progress.percentage}%`;
+                    });
+                    
+                    if (success) {
+                        button.innerHTML = '✅ 翻译完成';
+                        setTimeout(() => {
+                            updateDemoTexts();
+                        }, 1000);
+                    } else {
+                        button.innerHTML = '❌ 翻译失败';
+                    }
+                    
+                } catch (error) {
+                    console.error('界面翻译失败:', error);
+                    button.innerHTML = '❌ 翻译失败';
+                } finally {
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                }
+            });
+            
+            // 系统信息按钮
+            document.getElementById('showSystemInfoBtn').addEventListener('click', function() {
+                showSystemStatus();
+                document.getElementById('systemStatus').style.display = 'block';
+                document.getElementById('systemStatus').classList.add('fade-in');
+            });
+            
+            // 导出数据按钮
+            document.getElementById('exportDataBtn').addEventListener('click', function() {
+                LanguageSystem.exportSystemData();
+            });
+            
+            // 文本翻译按钮
+            document.getElementById('translateTextBtn').addEventListener('click', async function() {
+                const button = this;
+                const input = document.getElementById('translationInput');
+                const result = document.getElementById('translationResult');
+                const translatedText = document.getElementById('translatedText');
+                
+                if (!input.value.trim()) {
+                    alert('请输入要翻译的文本');
+                    return;
+                }
+                
+                button.innerHTML = '🔄 翻译中...';
+                button.disabled = true;
+                
+                try {
+                    const sourceLang = document.getElementById('sourceLanguage').value;
+                    const targetLang = document.getElementById('targetLanguage').value;
+                    
+                    // 使用AI翻译
+                    const translation = await LanguageManager.translateWithAI(
+                        input.value, 
+                        targetLang, 
+                        sourceLang
+                    );
+                    
+                    translatedText.textContent = translation;
+                    result.style.display = 'block';
+                    result.classList.add('fade-in');
+                    
+                    button.innerHTML = '✅ 翻译完成';
+                    
+                } catch (error) {
+                    console.error('文本翻译失败:', error);
+                    translatedText.textContent = '翻译失败: ' + error.message;
+                    result.style.display = 'block';
+                    button.innerHTML = '❌ 翻译失败';
+                } finally {
+                    setTimeout(() => {
+                        button.innerHTML = '🔄 翻译文本';
+                        button.disabled = false;
+                    }, 2000);
+                }
+            });
+            
+            // 演示按钮事件
+            const demoButtons = [
+                'autoPlayDemo', 'flipCardDemo', 'rememberDemo', 
+                'speakWordDemo', 'dontRememberDemo', 'addNewWordDemo'
+            ];
+            
+            demoButtons.forEach(id => {
+                document.getElementById(id).addEventListener('click', function() {
+                    const originalText = this.textContent;
+                    this.textContent = '✅ 已点击';
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                    }, 1000);
+                });
+            });
+        }
+        
+        // 更新演示文本
+        function updateDemoTexts() {
+            const texts = {
+                'demoTitle': t('demo.title', '🌍 GoldWord 多语言系统'),
+                'demoSubtitle': t('demo.subtitle', '支持12种语言的智能翻译系统'),
+                'demoSectionTitle': t('demo.interfaceDemo', '🎯 界面元素演示'),
+                'translateUIBtn': t('demo.translateUI', '🔄 翻译全部界面'),
+                'showSystemInfoBtn': t('demo.systemInfo', '📊 系统信息'),
+                'exportDataBtn': t('demo.exportData', '💾 导出数据'),
+                'translationDemoTitle': t('demo.translationDemo', '🔄 翻译演示'),
+                'translateTextBtn': t('demo.translateText', '🔄 翻译文本'),
+                'systemStatusTitle': t('demo.systemStatus', '📊 系统状态'),
+                'totalWordsLabel': t('stats.totalWords', '📊 总词数'),
+                'todayStudyLabel': t('stats.todayStudy', '📅 今日学习'),
+                'reviewProgressLabel': t('stats.reviewProgress', '🔁 复习进度'),
+                'strictCoverageLabel': t('stats.strictCoverage', '🧪 严格覆盖率')
+            };
+            
+            Object.entries(texts).forEach(([id, text]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = text;
+                }
+            });
+            
+            // 更新输入框占位符
+            const translationInput = document.getElementById('translationInput');
+            if (translationInput) {
+                translationInput.placeholder = t('demo.inputPlaceholder', '输入要翻译的文本...');
+            }
+        }
+        
+        // 显示系统状态
+        function showSystemStatus() {
+            const status = LanguageSystem.getSystemStatus();
+            const statusContainer = document.getElementById('systemStatus');
+            
+            const statusHtml = `
+                <div class="status-item">
+                    <span class="status-label">系统状态:</span>
+                    <span class="status-value">${status.initialized ? '✅ 已初始化' : '❌ 未初始化'}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">当前语言:</span>
+                    <span class="status-value">${status.currentLanguage}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">支持语言:</span>
+                    <span class="status-value">${status.supportedLanguages} 种</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">翻译键数:</span>
+                    <span class="status-value">${status.translationKeys.toLocaleString()}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">缓存大小:</span>
+                    <span class="status-value">${status.cacheSize}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">历史记录:</span>
+                    <span class="status-value">${status.historySize}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">系统版本:</span>
+                    <span class="status-value">${status.version}</span>
+                </div>
+            `;
+            
+            statusContainer.innerHTML = statusHtml;
+        }
+        
+        // 监听语言切换事件
+        document.addEventListener('languageChanged', function(event) {
+            console.log(`语言已切换为: ${event.detail.language}`);
+            updateDemoTexts();
+            showSystemStatus();
+            
+            // 显示切换成功的提示
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #34c759;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease-in;
+            `;
+            notification.textContent = `✅ 语言已切换为: ${event.detail.language}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

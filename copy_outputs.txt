@@ -1,0 +1,29 @@
+{
+  "count": 6,
+  "files": [
+    {
+      "filename": "GoldWord-1.0.5-mac.dmg",
+      "size": 106662788
+    },
+    {
+      "filename": "GoldWord-1.0.5-mac.zip",
+      "size": 101183258
+    },
+    {
+      "filename": "GoldWord-1.0.5.app.zip",
+      "size": 292308194
+    },
+    {
+      "filename": "GoldWord-1.0.5-win.zip",
+      "size": 114303986
+    },
+    {
+      "filename": "goldword-android-phone-1.0.5.apk",
+      "size": 3378548
+    },
+    {
+      "filename": "goldword-android-pad-1.0.5.apk",
+      "size": 3378548
+    }
+  ]
+}

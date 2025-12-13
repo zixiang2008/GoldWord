@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldWord 增强服务调试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            width: 80vw;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f7;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <span>🔧 GoldWord 增强服务调试工具</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button id="goToAuthCenterBtn" title="打开个人中心" style="font-size:14px; padding:8px 12px; border-radius:8px; background:#fff; color:#007aff; border:1px solid #cce3ff;">个人中心</button>
+            <a href="./index.html" style="font-size:14px; padding:8px 12px; border-radius:8px; background:#fff; color:#007aff; border:1px solid #cce3ff; text-decoration:none;">返回学习</a>
+            <button id="toggleRegressionPanelBtn" title="显示/隐藏回归检查面板" style="font-size:14px; padding:8px 12px; border-radius:8px; background:#fff; color:#34c759; border:1px solid #cce3ff;">回归检查</button>
+        </div>
+    </h1>
+    <script>
+      (function(){
+        var btn = document.getElementById('goToAuthCenterBtn');
+        if (btn) {
+          btn.addEventListener('click', function(){
+            try { window.location.href = './index.html?open=auth'; } catch(e) { }
+          });
+        }
+      })();
+    </script>
+
+    <div id="widthGuides" style="display:none; position:fixed; inset:0; pointer-events:none; z-index:9998;">
+        <div id="leftGuide" style="position:absolute; left:0; top:0; bottom:0; width:10vw; background:rgba(0,122,255,0.08);"></div>
+        <div id="rightGuide" style="position:absolute; right:0; top:0; bottom:0; width:10vw; background:rgba(0,122,255,0.08);"></div>
+    </div>
+
+    <div id="regressionPanel" style="display:none; position:fixed; right:14px; bottom:14px; z-index:9999; background:#ffffff; border:1px solid #e6e6e6; box-shadow:0 6px 20px rgba(0,0,0,0.12); border-radius:12px; padding:12px; font-size:12px; color:#333;">
+        <div style="font-weight:600; margin-bottom:6px;">快速回归检查</div>
+        <div>视口：<span id="metricViewport">—</span></div>
+        <div>页面宽度：<span id="metricPageWidth">—</span></div>
+        <div>比例（页面/视口）：<span id="metricRatio">—</span></div>
+        <div>方向：<span id="metricOrientation">—</span></div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+            <button id="toggleGuidesBtn" style="padding:6px 10px; border:1px solid #d0e7ff; border-radius:8px; background:#f0f6ff; color:#007aff; cursor:pointer;">参考线</button>
+            <button id="closePanelBtn" style="padding:6px 10px; border:1px solid #eee; border-radius:8px; background:#fff; color:#444; cursor:pointer;">隐藏</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>📊 服务状态检查</h2>
+        <div id="serviceStatus"></div>
+        <button onclick="checkServiceStatus()">检查服务状态</button>
+    </div>
+
+    <div class="card">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            ⚙️ GPT 配置测试
+            <a href="https://api.apiyi.com/register/?aff_code=V1Kp" target="_blank" style="font-size:14px; font-weight:normal; color:#007aff; text-decoration:none; border:1px solid #cce3ff; padding:4px 8px; border-radius:6px;">内置代理GPT平台API获取（付费）</a>
+        </h2>
+        <div id="currentUserInfo" style="font-size: 13px; color: #555; margin-bottom: 8px;"></div>
+        <div>
+            <label>预置模型（可选）:</label>
+            <select id="testModelSelect"></select>
+            <div id="testModelHelp" style="font-size: 12px; color: #666; margin: 6px 0;"></div>
+        </div>
+        <div>
+            <label>API 基础地址:</label>
+            <input type="text" id="testBaseUrl" placeholder="https://api.openai.com/v1" />
+            
+            <label>模型:</label>
+            <input type="text" id="testModel" placeholder="gpt-4o-mini" />
+            
+            <label>API 密钥:</label>
+            <input type="password" id="testApiKey" placeholder="sk-..." />
+        </div>
+        <button onclick="testGPTConfig()">测试 GPT 连接</button>
+        <button onclick="saveGPTToDB()">保存到应用配置</button>
+        <div id="gptTestResult"></div>
+    </div>
+
+    <div class="card">
+        <div id="enhanceHeaderRow" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:nowrap;">
+            <h2 style="margin:0;">🧪 增强测试</h2>
+            <button id="btnRenderFromDB" title="刷新结果表" style="padding:6px 10px; border:1px solid #d0e7ff; border-radius:8px; background:#f0f6ff; color:#007aff; font-size:12px; cursor:pointer;">刷新</button>
+            <div id="enhanceInlineRow" style="display:flex; align-items:center; gap:12px; flex-wrap:nowrap;"
+                onmouseenter="try{var b=document.getElementById('forceEnhanceInfoBtn'); b.style.opacity='1'; b.style.pointerEvents='auto';}catch(_){}"
+                onmouseleave="try{var b=document.getElementById('forceEnhanceInfoBtn'); b.style.opacity='0'; b.style.pointerEvents='none';}catch(_){}">
+                <label style="display:flex; align-items:center; gap:6px; font-size:14px;">
+                    <input type="checkbox" id="forceEnhanceAll" /> 强制全部增强
+                </label>
+                <button id="forceEnhanceInfoBtn" role="button" aria-label="说明"
+                        title="选中后将对词库中所有单词进行智能增强，并显示进度。"
+                        onclick="alert('选中后将对词库中所有单词进行智能增强，并显示进度。')"
+                        style="opacity:0; pointer-events:none; transition:opacity 150ms ease; padding:6px 10px; border:1px solid #d0e7ff; border-radius:8px; background:#f0f6ff; color:#007aff; font-size:12px; cursor:pointer;">
+                    说明
+                </button>
+                <button onclick="testWordEnhancement()" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">
+                    测试单词增强
+                </button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label for="testWord">测试单词:</label>
+                    <input type="text" id="testWord" value="example" placeholder="输入要测试的单词" />
+                </div>
+            </div>
+        </div>
+        <div id="forceEnhanceProgress" style="display:none; margin-top:10px;">
+            <div id="forceEnhanceProgressStatus" style="font-size:12px; color:#555; margin-bottom:6px;">准备中...</div>
+            <div style="width:100%; height:10px; background:#eee; border-radius:6px; overflow:hidden;">
+                <div id="forceEnhanceProgressBar" style="height:10px; width:0%; background:#34c759;
+                    transition: width 200ms ease;">
+                </div>
+            </div>
+        </div>
+        <div id="enhancementResult" style="margin-top:8px; font-size:14px;"></div>
+        <div id="enhancementTableWrap" style="margin-top:12px;">
+            <h3 style="margin:0 0 8px 0; font-weight:600;">增强结果表 <span id="wordCountInfo" style="font-weight:400; color:#666; font-size:13px;"></span></h3>
+            <div id="enhancementTableControls" style="margin:8px 0 10px 0; display:flex; gap:10px; align-items:center; flex-wrap:nowrap; overflow-x:auto; white-space:nowrap;">
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="1" checked> 单词</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="2" checked> 音标</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="3" checked> 词性</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="4" checked> 定义</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="5" checked> 中文</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="6" checked> 固定搭配</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="7" checked> 双语例句</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="8" checked> 记忆要点</label>
+                <label style="display:flex; gap:6px; align-items:center;"><input type="checkbox" data-col-index="9" checked> 联想</label>
+            </div>
+            <div style="overflow:auto; border:1px solid #eee; border-radius:6px; resize: horizontal; width:100%; min-width:480px;">
+                <table id="enhancementTable" style="width:100%; border-collapse:collapse; font-size:14px; table-layout: fixed;">
+                    <colgroup>
+                        <col data-col-index="1" style="width:auto;" />
+                        <col data-col-index="2" style="width:auto;" />
+                        <col data-col-index="3" style="width:auto;" />
+                        <col data-col-index="4" style="width:auto;" />
+                        <col data-col-index="5" style="width:auto;" />
+                        <col data-col-index="6" style="width:auto;" />
+                        <col data-col-index="7" style="width:auto;" />
+                        <col data-col-index="8" style="width:auto;" />
+                        <col data-col-index="9" style="width:auto;" />
+                    </colgroup>
+                    <thead style="background:#f7f7f7; position:sticky; top:0;">
+                        <tr>
+                            <th style="border:1px solid #eee; padding:6px;">单词</th>
+                            <th style="border:1px solid #eee; padding:6px;">音标</th>
+                            <th style="border:1px solid #eee; padding:6px;">词性</th>
+                            <th style="border:1px solid #eee; padding:6px;">主要用法/定义</th>
+                            <th style="border:1px solid #eee; padding:6px;">中文解释</th>
+                            <th style="border:1px solid #eee; padding:6px;">固定搭配</th>
+                            <th style="border:1px solid #eee; padding:6px;">例句(中/英)</th>
+                            <th style="border:1px solid #eee; padding:6px;">记忆要点</th>
+                            <th style="border:1px solid #eee; padding:6px;">联想</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📝 调试日志</h2>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button onclick="clearLog()">清空日志</button>
+            <button onclick="copyLogToClipboard()" title="复制到调试反馈">复制到调试反馈</button>
+        </div>
+        <div id="debugLog" class="log" style="font-size:14px;">日志输出将在此显示...</div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script>
+        window.SA = (typeof StorageAdapter !== 'undefined') ? StorageAdapter : {
+            getItem: function(key){ try { return localStorage.getItem(key); } catch(_) { return null; } },
+            setItem: function(key, value){ try { localStorage.setItem(key, String(value)); } catch(_) {} },
+            removeItem: function(key){ try { localStorage.removeItem(key); } catch(_) {} },
+            getJSON: function(key){ var raw = this.getItem(key); if (!raw) return null; try { return JSON.parse(raw); } catch(_) { return null; } },
+            setJSON: function(key, value){ try { this.setItem(key, JSON.stringify(value)); } catch(_) {} }
+        };
+
+        function initRegressionPanel(){
+            try {
+                var toggleBtn = document.getElementById('toggleRegressionPanelBtn');
+                var panel = document.getElementById('regressionPanel');
+                var guides = document.getElementById('widthGuides');
+                var toggleGuidesBtn = document.getElementById('toggleGuidesBtn');
+                var closePanelBtn = document.getElementById('closePanelBtn');
+
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', function(){
+                        panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none';
+                        updateRegressionMetrics();
+                    });
+                }
+                if (toggleGuidesBtn) {
+                    toggleGuidesBtn.addEventListener('click', function(){
+                        var show = (guides.style.display === 'none' || !guides.style.display);
+                        guides.style.display = show ? 'block' : 'none';
+                        updateRegressionMetrics();
+                    });
+                }
+                if (closePanelBtn) {
+                    closePanelBtn.addEventListener('click', function(){
+                        panel.style.display = 'none';
+                    });
+                }
+
+                window.addEventListener('resize', function(){
+                    updateRegressionMetrics();
+                });
+                window.addEventListener('orientationchange', function(){
+                    setTimeout(updateRegressionMetrics, 50);
+                });
+                document.addEventListener('DOMContentLoaded', function(){
+                    updateRegressionMetrics();
+                });
+            } catch(e) { }
+        }
+
+        function updateRegressionMetrics(){
+            try {
+                var vpW = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+                var vpH = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+                var pageRect = document.body.getBoundingClientRect();
+                var pageW = Math.round(pageRect.width);
+                var ratio = vpW ? Math.round((pageW / vpW) * 1000) / 10 : 0;
+                var orientation = (screen.orientation && screen.orientation.type) ? screen.orientation.type : (vpW >= vpH ? 'landscape' : 'portrait');
+
+                var elVp = document.getElementById('metricViewport');
+                var elPw = document.getElementById('metricPageWidth');
+                var elR = document.getElementById('metricRatio');
+                var elO = document.getElementById('metricOrientation');
+
+                if (elVp) elVp.textContent = vpW + ' × ' + vpH;
+                if (elPw) elPw.textContent = pageW + 'px';
+                if (elR) elR.textContent = ratio + '%';
+                if (elO) elO.textContent = orientation;
+            } catch(e) { }
+        }
+
+        try { initRegressionPanel(); } catch(_) {}
+    </script>
+    <script src="db.js"></script>
+    <script src="word-schema.js"></script>
+    <script src="word-enhancement-service.js"></script>
+    <script src="built-in-models.js"></script>
+
+    <script>
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function addToLog(type, ...args) {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            if (!logDiv) return;
+            logDiv.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) { originalLog.apply(console, args); addToLog('log', ...args); };
+        console.warn = function(...args) { originalWarn.apply(console, args); addToLog('warn', ...args); };
+        console.error = function(...args) { originalError.apply(console, args); addToLog('error', ...args); };
+
+        function clearLog() { const el = document.getElementById('debugLog'); if (el) el.textContent = ''; }
+
+        async function copyLogToClipboard() {
+            try {
+                const el = document.getElementById('debugLog');
+                const text = (el && el.textContent) ? el.textContent : '';
+                if (!text) { console.warn('调试日志为空，无需复制'); }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                console.log('✅ 调试日志已复制到剪贴板');
+            } catch (e) { console.error('复制调试日志失败:', e); }
+        }
+
+        function checkServiceStatus() {
+            const statusDiv = document.getElementById('serviceStatus');
+            
+            try {
+                if (typeof wordEnhancementService === 'undefined') {
+                    statusDiv.innerHTML = '<div class="status error">❌ 增强服务未加载</div>';
+                    return;
+                }
+                
+                const status = wordEnhancementService.getServiceStatus();
+                console.log('服务状态:', status);
+                
+                let html = '';
+                
+                html += `<div class="status ${status.isProcessing ? 'warning' : 'success'}">
+                    ${status.isProcessing ? '⏳' : '✅'} 服务状态: ${status.isProcessing ? '处理中' : '就绪'}
+                </div>`;
+                
+                html += `<div class="status ${status.hasLocalDictionary ? 'success' : 'warning'}">
+                    ${status.hasLocalDictionary ? '📚' : '📖'} 本地词典: ${status.hasLocalDictionary ? `已加载 (${status.localDictionarySize} 词条)` : '未加载'}
+                </div>`;
+                
+                html += `<div class="status ${status.gptConfigured ? 'success' : 'warning'}">
+                    ${status.gptConfigured ? '🤖' : '⚠️'} GPT配置: ${status.gptConfigured ? '已配置' : '未配置'}
+                </div>`;
+                
+                if (status.gptConfig) {
+                    html += `<div style="margin-left: 20px; font-size: 14px;">
+                        • API密钥: ${status.gptConfig.hasApiKey ? '✅ 已设置' : '❌ 未设置'}<br>
+                        • 基础URL: ${status.gptConfig.hasBaseUrl ? '✅ ' + status.gptConfig.baseUrl : '❌ 未设置'}<br>
+                        • 模型: ${status.gptConfig.hasModel ? '✅ ' + status.gptConfig.model : '❌ 未设置'}
+                    </div>`;
+                }
+                
+                statusDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('检查服务状态失败:', error);
+                statusDiv.innerHTML = '<div class="status error">❌ 检查失败: ' + error.message + '</div>';
+            }
+        }
+
+        async function testGPTConfig() {
+            const resultDiv = document.getElementById('gptTestResult');
+            const baseUrl = document.getElementById('testBaseUrl').value.trim();
+            const model = document.getElementById('testModel').value.trim();
+            const apiKey = document.getElementById('testApiKey').value.trim();
+            
+            if (!baseUrl || !model || !apiKey) {
+                resultDiv.innerHTML = '<div class="status error">❌ 请填写完整的配置信息</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="status warning">⏳ 测试中...</div>';
+            
+            try {
+                console.log('测试GPT配置...');
+                
+                const testConfig = { baseUrl, model, apiKey };
+                
+                if (typeof App !== 'undefined' && App.testGPTSettings) {
+                    const result = await App.testGPTSettings(testConfig);
+                    if (result.ok) { resultDiv.innerHTML = '<div class="status success">✅ GPT连接测试成功</div>'; }
+                    else { resultDiv.innerHTML = `<div class="status error">❌ GPT连接测试失败: ${result.error}</div>`; }
+                } else {
+                    let base = (baseUrl || '').trim().replace(/\/$/, '');
+                    if (!/\/v1\/?$/.test(base)) { base = base + '/v1'; }
+                    const apiUrl = base + '/chat/completions';
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({ model: model, messages: [{ role: 'user', content: 'Hello' }], max_tokens: 10 })
+                    });
+                    if (response.ok) { resultDiv.innerHTML = '<div class="status success">✅ GPT连接测试成功</div>'; }
+                    else { const errorText = await response.text(); resultDiv.innerHTML = `<div class="status error">❌ GPT连接测试失败: ${response.status} - ${errorText}</div>`; }
+                }
+                
+            } catch (error) {
+                console.error('GPT测试失败:', error);
+                resultDiv.innerHTML = `<div class="status error">❌ 测试失败: ${error.message}</div>`;
+            }
+        }
+
+        async function testWordEnhancement() {
+            const resultDiv = document.getElementById('enhancementResult');
+            const word = document.getElementById('testWord').value.trim();
+            const forceAll = !!document.getElementById('forceEnhanceAll')?.checked;
+
+            if (forceAll) { await runForcedEnhancementAll(); return; }
+            
+            if (!word) { resultDiv.innerHTML = '<div class="status error">❌ 请输入要测试的单词</div>'; return; }
+            
+            resultDiv.innerHTML = '<div class="status warning">⏳ 增强中...</div>';
+            
+            try {
+                console.log(`测试单词增强: ${word}`);
+                
+                if (typeof wordEnhancementService === 'undefined') { resultDiv.innerHTML = '<div class="status error">❌ 增强服务不可用</div>'; return; }
+                
+                const testWordObj = { word: word };
+                const enhanced = await wordEnhancementService.enhanceWord(testWordObj);
+                
+                console.log('增强结果:', enhanced);
+                
+                let html = '<div class="status success">✅ 增强完成</div>';
+                
+                resultDiv.innerHTML = html;
+
+                try { renderEnhancementTable([enhanced]); } catch(_){}
+                
+            } catch (error) {
+                console.error('单词增强测试失败:', error);
+                resultDiv.innerHTML = `<div class="status error">❌ 增强失败: ${error.message}</div>`;
+            }
+        }
+
+        async function runForcedEnhancementAll() {
+            try {
+                const barWrap = document.getElementById('forceEnhanceProgress');
+                const bar = document.getElementById('forceEnhanceProgressBar');
+                const status = document.getElementById('forceEnhanceProgressStatus');
+                if (barWrap) barWrap.style.display = 'block';
+                if (bar) bar.style.width = '0%';
+                if (status) status.textContent = '准备中...';
+
+                if (typeof wordEnhancementService === 'undefined') { console.error('增强服务不可用，无法执行强制全部增强'); if (status) status.textContent = '❌ 增强服务不可用'; return; }
+
+                let allWords = [];
+                try { allWords = (typeof DB !== 'undefined' && DB.getAllWords) ? (DB.getAllWords() || []) : []; } catch(_){ allWords = []; }
+                if (!Array.isArray(allWords) || allWords.length === 0) { console.warn('词库为空或不可用，强制增强跳过'); if (status) status.textContent = '⚠️ 词库为空或不可用'; return; }
+
+                console.log(`强制全部增强启动，共 ${allWords.length} 个词`);
+
+                try { wordEnhancementService.setProgressCallback(function(current, total, enhanced){ const percent = total > 0 ? Math.round((current / total) * 100) : 0; if (bar) bar.style.width = percent + '%'; if (status) status.textContent = `进度：${current}/${total}（已增强：${enhanced}）`; console.log(`进度更新：${current}/${total}，已增强：${enhanced}`); }); } catch(_){ }
+
+                const enhancedWords = await wordEnhancementService.batchEnhanceWords(allWords, { force: true });
+                if (status) status.textContent = `✅ 完成：处理 ${enhancedWords.length}/${allWords.length}`;
+                if (bar) bar.style.width = '100%';
+                console.log('强制全部增强完成，结果示例：', (enhancedWords[0] || {}));
+
+                try { renderEnhancementTable(enhancedWords); } catch(_){}
+            } catch (e) { console.error('强制全部增强失败:', e); }
+        }
+
+        function renderEnhancementTable(words) {
+            try {
+                const table = document.getElementById('enhancementTable');
+                const tbody = table ? table.querySelector('tbody') : null;
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                const toStr = (v) => Array.isArray(v) ? v.join('\n') : String(v || '').trim();
+                const escapeHtml = (s) => String(s || '').replace(/[&<>"]/g, function(ch){ switch(ch){case '&': return '&amp;'; case '<': return '&lt;'; case '>': return '&gt;'; case '"': return '&quot;'; default: return ch; } });
+
+                (words || []).forEach(function(w){
+                    const phon = w.phonetic || '';
+                    const pos = w.partOfSpeech || '';
+                    const def = w.definition || (w.aiEnhanced && w.aiEnhanced.definition) || '';
+                    const zh = w.chinese || (w.aiEnhanced && w.aiEnhanced.chineseMeaning) || '';
+                    const collRaw = (w.collocation || '') || ((w.aiEnhanced && w.aiEnhanced.collocations) || []);
+                    const collItems = (Array.isArray(collRaw) ? collRaw : String(collRaw || '').split(/\n|；|;|，/))
+                        .map(function(item){ if (typeof item === 'string') { const s = String(item || '').trim(); if (!s) return null; const parts = s.includes('：') ? s.split('：') : (s.includes(':') ? s.split(':') : s.split('+')); const en = (parts[0] || '').trim(); const zh = (parts[1] || '').trim(); return { en, zh }; } if (item && typeof item === 'object') { const en = String(item.phrase || item.en || '').trim(); const zh = String(item.meaning || item.zh || '').trim(); return { en, zh }; } return null; })
+                        .filter(Boolean);
+                    (function(){ const seen = new Set(); let i = 0; while (i < collItems.length) { const key = (collItems[i].en || '').trim().toLowerCase(); if (key && seen.has(key)) { collItems.splice(i,1); continue; } if (key) seen.add(key); i += 1; } })();
+                    const collDisplay = collItems.map(function(c){ return c.en ? (c.zh ? (c.en + '：' + c.zh) : c.en) : ''; }).filter(Boolean).join('\n');
+
+                    try {
+                        if (typeof DB !== 'undefined' && DB.getAllWords) {
+                            const allWordsDB = DB.getAllWords() || [];
+                            const existing = allWordsDB.find(function(x){ return x && x.word === w.word; });
+                            const normColls = collItems.map(function(c){ return { en: c.en || '', zh: c.zh || '' }; });
+                            const normExamples = exItems.slice(0, 3).map(function(e){ return { en: e.en || '', zh: e.zh || '' }; });
+                            if (existing) { existing.collocations = normColls; existing.examples = normExamples; DB.saveFileData(allWordsDB); }
+                            else if (DB.saveWordData) { DB.saveWordData({ word: w.word, collocations: normColls, examples: normExamples }); }
+                        }
+                    } catch(_){ }
+
+                    const exRaw = Array.isArray(w.examples) ? w.examples : [];
+                    const exItems = exRaw.map(function(e){ return { en: String(e.en || '').trim(), zh: String(e.zh || '').trim() }; });
+                    (function(){ const seen = new Set(); let i = 0; while (i < exItems.length) { const key = (exItems[i].en || '').toLowerCase(); if (key && seen.has(key)) { exItems.splice(i,1); continue; } if (key) seen.add(key); i += 1; } })();
+                    const ex = exItems.map(function(e){ return `${e.zh || ''} | ${e.en || ''}`; }).join('\n');
+                    const memo = (w.mnemonic || '') || ((w.aiEnhanced && w.aiEnhanced.memoryTip) || '');
+                    const assoc = (w.association || '') || ((w.aiEnhanced && w.aiEnhanced.association) || '');
+
+                    const tr = document.createElement('tr');
+                    const values = [w.word||'', phon, pos, def, zh, collDisplay, ex, memo, assoc];
+                    const cells = values.map(function(val){ const td = document.createElement('td'); td.style.border = '1px solid #eee'; td.style.padding = '6px'; td.style.verticalAlign = 'top'; td.style.whiteSpace = 'pre-wrap'; td.innerHTML = escapeHtml(toStr(val)); return td; });
+                    cells.forEach(function(td){ tr.appendChild(td); });
+                    tbody.appendChild(tr);
+
+                    try {
+                        const collTd = cells[5]; const exampleTd = cells[6];
+                        if (window.wordEnhancementService && typeof window.wordEnhancementService.translateTextToChinese === 'function') {
+                            collItems.forEach(function(item, idx){ if (item.en && !item.zh) { window.wordEnhancementService.translateTextToChinese(item.en).then(function(zhTxt){ const t = String(zhTxt || '').trim(); if (!t) return; item.zh = t; const lines = collItems.map(function(c){ return c.en ? (c.zh ? (c.en + '：' + c.zh) : c.en) : ''; }).filter(Boolean); if (collTd) collTd.textContent = lines.join('\n'); try { if (typeof DB !== 'undefined' && DB.getAllWords) { const allWordsDB = DB.getAllWords() || []; const existing = allWordsDB.find(function(x){ return x && x.word === w.word; }); const normColls = collItems.map(function(c){ return { en: c.en || '', zh: c.zh || '' }; }); if (existing) { existing.collocations = normColls; DB.saveFileData(allWordsDB); } else if (DB.saveWordData) { DB.saveWordData({ word: w.word, collocations: normColls }); } } } catch(_){ } }).catch(function(){}); } });
+                            exItems.forEach(function(ex){ if (ex.en && !ex.zh) { window.wordEnhancementService.translateTextToChinese(ex.en).then(function(zhTxt){ const t = String(zhTxt || '').trim(); if (!t) return; ex.zh = t; const lines = exItems.map(function(e){ return `${e.zh || ''} | ${e.en || ''}`; }); if (exampleTd) exampleTd.textContent = lines.join('\n'); try { if (typeof DB !== 'undefined' && DB.getAllWords) { const allWordsDB = DB.getAllWords() || []; const existing = allWordsDB.find(function(x){ return x && x.word === w.word; }); const normExamples = exItems.slice(0, 3).map(function(e){ return { en: e.en || '', zh: e.zh || '' }; }); if (existing) { existing.examples = normExamples; DB.saveFileData(allWordsDB); } else if (DB.saveWordData) { DB.saveWordData({ word: w.word, examples: normExamples }); } } } catch(_){ } }).catch(function(){}); } });
+                        }
+                    } catch(_){ }
+                });
+            } catch (e) { console.error('渲染增强结果表失败:', e); }
+        }
+
+        function renderEnhancementTableFromDB() { try { let words = []; try { words = (typeof DB !== 'undefined' && DB.getAllWords) ? (DB.getAllWords() || []) : []; } catch (_) { words = []; } if (!Array.isArray(words) || words.length === 0) { console.warn('数据库中暂无词条'); } renderEnhancementTable(words); } catch (e) { console.error('从数据库加载表格失败:', e); } }
+
+        function exportEnhancementTableCSV() {
+            try {
+                const table = document.getElementById('enhancementTable'); if (!table) return;
+                const thead = table.querySelector('thead'); const tbody = table.querySelector('tbody');
+                const headers = Array.from(thead.querySelectorAll('th')).filter((th) => th.style.display !== 'none').map((th) => th.textContent.trim());
+                const rows = Array.from(tbody.querySelectorAll('tr')).map(function(tr){ return Array.from(tr.children).filter((td) => td.style.display !== 'none').map((td) => td.textContent || ''); });
+                const csvEscape = function(val){ const s = String(val || '').replace(/\r?\n/g, '\n'); const needsQuotes = /[",\n]/.test(s); const q = s.replace(/"/g, '""'); return needsQuotes ? `"${q}"` : q; };
+                const lines = []; lines.push(headers.map(csvEscape).join(',')); rows.forEach(function(row){ lines.push(row.map(csvEscape).join(',')); });
+                const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'enhancement-results.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            } catch (e) { console.error('导出 CSV 失败:', e); }
+        }
+
+        function setupColumnVisibilityControls() {
+            try {
+                const controls = document.getElementById('enhancementTableControls'); if (!controls) return;
+                const table = document.getElementById('enhancementTable'); if (!table) return;
+                const checkboxes = controls.querySelectorAll('input[type="checkbox"][data-col-index]');
+                checkboxes.forEach(function(cb){ cb.addEventListener('change', function(){ const index = parseInt(cb.getAttribute('data-col-index'), 10); const visible = !!cb.checked; toggleColumnVisibility(index, visible); }); });
+                checkboxes.forEach(function(cb){ const index = parseInt(cb.getAttribute('data-col-index'), 10); toggleColumnVisibility(index, !!cb.checked); });
+                function toggleColumnVisibility(index, visible) { try { const ths = table.querySelectorAll(`thead th:nth-child(${index})`); const tds = table.querySelectorAll(`tbody td:nth-child(${index})`); const col = table.querySelector(`colgroup col:nth-child(${index})`); ths.forEach(function(el){ el.style.display = visible ? '' : 'none'; }); tds.forEach(function(el){ el.style.display = visible ? '' : 'none'; }); if (col) { col.style.display = visible ? '' : 'none'; } } catch (e) { console.error('切换列显示失败:', e); } }
+                document.getElementById('btnExportCSV')?.addEventListener('click', exportEnhancementTableCSV);
+                document.getElementById('btnRenderFromDB')?.addEventListener('click', renderEnhancementTableFromDB);
+            } catch (e) { console.error('初始化列显示控制失败:', e); }
+        }
+
+        function setupColumnResizers() {
+            try {
+                const table = document.getElementById('enhancementTable'); if (!table) return;
+                const colgroup = table.querySelector('colgroup'); const headerCells = table.querySelectorAll('thead th'); if (!colgroup || !headerCells.length) return;
+                if (!document.getElementById('colResizerStyles')) { const style = document.createElement('style'); style.id = 'colResizerStyles'; style.textContent = `.col-resizer{position:absolute;right:0;top:0;width:6px;height:100%;cursor:col-resize;user-select:none}`; document.head.appendChild(style); }
+                table.style.tableLayout = 'fixed'; headerCells.forEach(function(th, idx){ th.style.position = 'relative'; const handle = document.createElement('span'); handle.className = 'col-resizer'; th.appendChild(handle); let startX = 0; let startWidth = 0; let active = false; const col = colgroup.children[idx]; const onMouseMove = function(e){ if (!active) return; const delta = e.pageX - startX; const newW = Math.max(60, startWidth + delta); if (col) { col.style.width = newW + 'px'; } th.style.width = newW + 'px'; }; const onMouseUp = function(){ if (!active) return; active = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }; handle.addEventListener('mousedown', function(e){ active = true; startX = e.pageX; const useEl = col && col.offsetWidth ? col : th; startWidth = useEl.offsetWidth || th.offsetWidth; document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp); e.preventDefault(); }); });
+            } catch (e) { console.error('初始化列宽拖拽失败:', e); }
+        }
+
+        try { setupColumnVisibilityControls(); } catch(_) {}
+        try { setupColumnResizers(); } catch(_) {}
+
+        async function saveGPTToDB() {
+            const resultDiv = document.getElementById('gptTestResult');
+            const baseUrl = document.getElementById('testBaseUrl').value.trim();
+            const model = document.getElementById('testModel').value.trim();
+            const apiKey = document.getElementById('testApiKey').value.trim();
+
+            if (!baseUrl || !model || !apiKey) { resultDiv.innerHTML = '<div class="status error">❌ 请填写完整的配置信息后再保存</div>'; return; }
+
+            try {
+                const cfg = { baseUrl, model, apiKey };
+                if (typeof DB !== 'undefined' && DB.saveGPTConfig) {
+                    const saved = DB.saveGPTConfig(cfg);
+                    try { if (typeof wordEnhancementService !== 'undefined') { wordEnhancementService.gptConfig = null; } } catch(_){}
+                    const uid = (typeof DB !== 'undefined' && DB.getCurrentUserId) ? (DB.getCurrentUserId() || 'default') : 'default';
+                    resultDiv.innerHTML = `<div class="status success">✅ 已保存到用户 <strong>${uid}</strong> 的应用配置</div>`;
+                    checkServiceStatus();
+                } else { resultDiv.innerHTML = '<div class="status error">❌ 保存失败：DB.saveGPTConfig 不可用</div>'; }
+            } catch (e) { console.error('保存GPT配置失败:', e); resultDiv.innerHTML = `<div class="status error">❌ 保存失败：${e && e.message ? e.message : e}</div>`; }
+        }
+
+        function initPresetModels() {
+            const sel = document.getElementById('testModelSelect'); const help = document.getElementById('testModelHelp'); if (!sel) return;
+
+            const BUILT_IN_MODELS = (window.BUILT_IN_MODELS_LIST || []);
+
+            sel.innerHTML = '<option value="">-- 选择预置模型（可选） --</option>';
+            BUILT_IN_MODELS.forEach(function(line){ const parts = String(line || '').split(','); const model = (parts[1]||'').trim(); const opt = document.createElement('option'); opt.value = line; const label = (typeof window.renderModelOptionLabel === 'function') ? window.renderModelOptionLabel(line) : (model + ' By API易'); opt.textContent = label; sel.appendChild(opt); });
+
+            sel.onchange = function(){ const val = sel.value; if (!val) return; const parts = val.split(','); let api = (parts[0]||'').trim(); const model = (parts[1]||'').trim(); const desc = (parts[2]||'').trim(); const paid = (parts[3]||'').trim(); let baseUrl = api.replace(/\/?v1\/?chat\/?completions\/?$/i, ''); baseUrl = baseUrl.replace(/\/$/, ''); document.getElementById('testBaseUrl').value = baseUrl; document.getElementById('testModel').value = model; if (help) { if (typeof window.renderModelHelpHtml === 'function') { help.innerHTML = window.renderModelHelpHtml(val); } else { help.innerHTML = 'API: <code>' + api + '</code><br/>' + '模型: <code>' + model + '</code><br/>' + '说明: ' + desc + '<br/>' + '是否收费: ' + paid + '<br/>' + '文档：<a href="https://docs.apiyi.com/api-manual" target="_blank">https://docs.apiyi.com/api-manual</a>'; } } };
+
+            try { const cfg = (typeof DB !== 'undefined' && DB.getGPTConfig) ? DB.getGPTConfig() : {}; const idx = BUILT_IN_MODELS.findIndex(function(line){ const parts = line.split(','); return (parts[1]||'').trim() === (cfg.model||'').trim(); }); if (idx >= 0) sel.selectedIndex = idx + 1; } catch(_){ }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('调试页面已加载');
+            try { if (typeof DB !== 'undefined' && DB.init) { DB.init(); } } catch (_) {}
+            try { if (typeof wordEnhancementService !== 'undefined') { wordEnhancementService.gptConfig = null; } } catch (_) {}
+            if (typeof DB !== 'undefined' && DB.getGPTConfig) { const config = DB.getGPTConfig(); if (config.baseUrl) document.getElementById('testBaseUrl').value = config.baseUrl; if (config.model) document.getElementById('testModel').value = config.model; if (config.apiKey) document.getElementById('testApiKey').value = config.apiKey; }
+            try { const uid = (typeof DB !== 'undefined' && DB.getCurrentUserId) ? (DB.getCurrentUserId() || 'default') : 'default'; const el = document.getElementById('currentUserInfo'); if (el) { el.textContent = `当前用户：${uid} —— GPT 配置按用户隔离保存`; } } catch(_){ }
+            initPresetModels();
+            (function refreshWordCount(){ try { const span = document.getElementById('wordCountInfo'); if (span && typeof DB !== 'undefined') { const list = DB.fileData || []; const total = Array.isArray(list) ? list.length : 0; span.textContent = `（总词数：${total}）`; } } catch(_){ } setTimeout(refreshWordCount, 1500); })();
+            setTimeout(checkServiceStatus, 500);
+        });
+    </script>
+</body>
+</html>

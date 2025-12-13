@@ -1,0 +1,57 @@
+name: Build iOS Archive
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add iOS platform
+        run: npx cap add ios
+
+      - name: Copy web assets
+        run: npm run cap:copy || npx cap copy ios
+
+      - name: Setup Ruby and CocoaPods
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - run: sudo gem install cocoapods
+
+      - name: Install Pods
+        working-directory: ios/App
+        run: pod install
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build (Release)
+        working-directory: ios
+        run: xcodebuild -workspace App/App.xcworkspace -scheme App -configuration Release build
+
+      - name: Archive (unsigned)
+        working-directory: ios
+        run: |
+          xcodebuild -workspace App/App.xcworkspace -scheme App -configuration Release \
+            -archivePath ./App.xcarchive archive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+
+      - name: Upload xcarchive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: goldword-ios-xcarchive
+          path: ios/App.xcarchive

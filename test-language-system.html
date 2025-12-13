@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语言系统测试</title>
+</head>
+<body>
+    <h1>GoldWord 多语言系统测试</h1>
+    <div id="test-results"></div>
+    <button onclick="testLanguageSystem()">测试语言系统</button>
+    
+    <script src="language-system/language-system-complete-updated.js"></script>
+    <script>
+        function testLanguageSystem() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '';
+            
+            try {
+                // 测试1: 检查LanguageSystem是否存在
+                results.innerHTML += '<p>测试1: LanguageSystem 存在性检查...</p>';
+                if (typeof LanguageSystem !== 'undefined') {
+                    results.innerHTML += '<p style="color: green;">✅ LanguageSystem 已定义</p>';
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ LanguageSystem 未定义</p>';
+                    return;
+                }
+                
+                // 测试2: 检查基本功能
+                results.innerHTML += '<p>测试2: 基本功能检查...</p>';
+                if (typeof LanguageSystem.t === 'function') {
+                    results.innerHTML += '<p style="color: green;">✅ 翻译函数 t() 可用</p>';
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ 翻译函数 t() 不可用</p>';
+                }
+                
+                // 测试3: 检查语言信息
+                results.innerHTML += '<p>测试3: 语言信息检查...</p>';
+                const langInfo = LanguageSystem.getLanguageInfo('zh-CN');
+                if (langInfo && langInfo.name) {
+                    results.innerHTML += `<p style="color: green;">✅ 语言信息可用: ${langInfo.name}</p>`;
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ 语言信息不可用</p>';
+                }
+                
+                // 测试4: 尝试初始化
+                results.innerHTML += '<p>测试4: 系统初始化测试...</p>';
+                LanguageSystem.init({
+                    defaultLanguage: 'zh-CN',
+                    enableAutoDetect: false,
+                    enableCache: false,
+                    enableAI: false
+                }).then(success => {
+                    if (success) {
+                        results.innerHTML += '<p style="color: green;">✅ 系统初始化成功</p>';
+                        
+                        // 测试5: 翻译测试
+                        results.innerHTML += '<p>测试5: 翻译功能测试...</p>';
+                        const translation = LanguageSystem.t('hello', 'Hello');
+                        results.innerHTML += `<p style="color: blue;">翻译结果: ${translation}</p>`;
+                        
+                    } else {
+                        results.innerHTML += '<p style="color: red;">❌ 系统初始化失败</p>';
+                    }
+                }).catch(error => {
+                    results.innerHTML += `<p style="color: red;">❌ 初始化错误: ${error.message}</p>`;
+                });
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">❌ 测试错误: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.addEventListener('load', function() {
+            console.log('测试页面加载完成');
+            console.log('LanguageSystem状态:', typeof LanguageSystem);
+            
+            // 延迟1秒后自动运行测试
+            setTimeout(function() {
+                console.log('自动运行测试...');
+                testLanguageSystem();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

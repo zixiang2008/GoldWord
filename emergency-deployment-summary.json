@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-11-21T20:39:28.010Z",
+  "site": "caishen.us.kg",
+  "deploymentPackage": {
+    "totalFiles": 7,
+    "totalSize": 152958,
+    "missingFiles": [],
+    "files": [
+      "app-cdn.html",
+      "404.html",
+      "_redirects",
+      "netlify.toml",
+      "cdn-links-generated.json",
+      "cdn-mapping-config.json",
+      "index.html"
+    ]
+  },
+  "status": "ready",
+  "nextSteps": [
+    "访问Netlify控制台: https://app.netlify.com",
+    "找到站点: caishen.us.kg",
+    "进入\"Deploys\"页面",
+    "点击\"Trigger deploy\" → \"Deploy site\"",
+    "等待部署完成",
+    "验证部署结果"
+  ],
+  "verificationUrls": [
+    "https://caishen.us.kg/app-cdn.html",
+    "https://www.caishen.us.kg/app-cdn.html",
+    "https://caishen.us.kg/downloads-cdn.html"
+  ]
+}

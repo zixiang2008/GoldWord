@@ -1,0 +1,94 @@
+apply plugin: 'com.android.application'
+
+import groovy.json.JsonSlurper
+
+android {
+    namespace "com.goldword.app"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.goldword.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        def pkgFile = file('../../package.json')
+        def appVersion = '1.0.0'
+        if (pkgFile.exists()) {
+            try {
+                def pkg = new JsonSlurper().parseText(pkgFile.getText('UTF-8'))
+                if (pkg?.version) appVersion = pkg.version
+            } catch (Exception ignored) {}
+        }
+        versionName appVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            def ksPath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore"
+            storeFile file(ksPath)
+            storePassword System.getenv("ANDROID_KEYSTORE_STORE_PASSWORD") ?: ""
+            keyAlias System.getenv("ANDROID_KEYSTORE_ALIAS") ?: ""
+            keyPassword System.getenv("ANDROID_KEYSTORE_KEY_PASSWORD") ?: ""
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            def ksPath = System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore"
+            def hasSigning = (System.getenv("ANDROID_KEYSTORE_STORE_PASSWORD") ?: "").length() > 0 && (System.getenv("ANDROID_KEYSTORE_ALIAS") ?: "").length() > 0 && file(ksPath).exists()
+            if (hasSigning) {
+                signingConfig signingConfigs.release
+            } else {
+                println "[Android] WARN: Release signing disabled (missing env or keystore); building unsigned APK"
+            }
+        }
+        debug {
+        }
+        feature {
+            initWith release
+            matchingFallbacks = ["release"]
+        }
+    }
+}
+
+repositories {
+    def cordovaLibs = file('../capacitor-cordova-android-plugins/src/main/libs')
+    flatDir{
+        if (cordovaLibs.exists()) {
+            dirs cordovaLibs, 'libs'
+        } else {
+            dirs 'libs'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    // No Cordova plugins for this app; skip plugin project dependency
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

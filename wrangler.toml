@@ -1,0 +1,7 @@
+name = "goldword-r2"
+main = "index.js"
+compatibility_date = "2023-12-01"
+
+[[r2_buckets]]
+binding = "GOLDWORD_DOWNLOADS"
+bucket_name = "goldword-downloads"

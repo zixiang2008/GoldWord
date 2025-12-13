@@ -1,0 +1,28 @@
+{
+  "name": "cloudflare-cdn-automation",
+  "version": "1.0.0",
+  "description": "CloudFlare CDN自动化配置工具",
+  "main": "cloudflare-cdn-setup.js",
+  "scripts": {
+    "setup": "node cloudflare-cdn-setup.js",
+    "deploy": "node deploy-cdn.js",
+    "test": "node test-cdn.js"
+  },
+  "keywords": [
+    "cloudflare",
+    "cdn",
+    "automation",
+    "deployment"
+  ],
+  "author": "GoldWord App",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

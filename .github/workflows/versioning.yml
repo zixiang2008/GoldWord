@@ -1,0 +1,60 @@
+name: Versioning Flow
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - package.json
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Bump version (patch)
+        run: |
+          npm version patch --no-git-tag-version
+          echo "CURRENT_VERSION=$(node -e 'console.log(require("./package.json").version)')" >> $GITHUB_ENV
+
+      - name: Generate report and backup
+        run: |
+          node scripts/generate-release-report.js
+          node scripts/version-backup.js
+
+      - name: Dependency update check
+        run: |
+          npm outdated || true
+          npm outdated || true > dependency-outdated.txt
+          npm audit --json || true > audit.json
+
+      - name: Create rollback tag
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add package.json RELEASE_NOTES.md release-report.json .backups/state.json || true
+          git commit -m "chore: version bump to ${CURRENT_VERSION}" || true
+          git tag -a "rollback_${CURRENT_VERSION}" -m "rollback point ${CURRENT_VERSION}"
+          git push origin "rollback_${CURRENT_VERSION}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: versioning-${{ env.CURRENT_VERSION }}
+          path: |
+            release-report.json
+            RELEASE_NOTES.md
+            dependency-outdated.txt
+            audit.json
+            .backups/state.json

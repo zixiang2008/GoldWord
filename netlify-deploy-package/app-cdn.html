@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GoldWord 下载中心 - CDN加速</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;background:#fff;color:#333}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    h1{font-size:24px;margin:0 0 12px}
+    .ver{font-size:14px;color:#666;margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .card{border:1px solid #e5e5e5;border-radius:12px;padding:14px;background:#fafafa;transition:all .2s}
+    .card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);transform:translateY(-1px)}
+    .card h3{margin:0 0 8px;font-size:16px}
+    .card .desc{font-size:13px;color:#666;margin-bottom:8px}
+    .card .size-info{font-size:12px;color:#999;margin-bottom:8px}
+    .card .cdn-badge{display:inline-block;background:#ff6b35;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;margin-bottom:8px}
+    .card .download-group{display:flex;gap:8px;flex-wrap:wrap}
+    .card a{display:inline-block;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500;transition:all .2s}
+    .card .cdn-link{background:#007aff;color:#fff}
+    .card .cdn-link:hover{background:#0056b3}
+    .card .github-link{background:#24292e;color:#fff}
+    .card .github-link:hover{background:#1a1e22}
+    .note{margin-top:20px;font-size:13px;color:#555;background:#f8f9fa;padding:16px;border-radius:8px}
+    .cdn-notice{background:#e8f4fd;border:1px solid #b3d7f0;color:#0066cc;padding:12px;border-radius:8px;margin-bottom:16px;font-size:14px}
+    .cdn-notice strong{color:#004499}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+    .info-card{display:flex;align-items:flex-start;gap:10px;padding:8px;background:#fff;border-radius:6px}
+    .info-icon{font-size:20px;flex-shrink:0}
+    @media(max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:460px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>GoldWord 下载中心</h1>
+    <div class="ver" id="ver">当前版本：</div>
+    
+    <div class="cdn-notice">
+      <strong>🚀 CDN加速下载</strong><br>
+      所有下载文件已通过CloudFlare CDN全球加速，下载速度提升显著。如遇问题，仍可通过GitHub原始链接下载。
+    </div>
+    
+    <div class="grid" id="grid"></div>
+    
+    <div class="note">
+      <div style="font-weight:600;margin-bottom:6px">使用指引</div>
+      <div class="info-grid">
+        <div class="info-card"><div class="info-icon">🍎</div><div><div style="font-weight:600;color:#007aff">macOS 安装包.app</div><div style="color:#555">解压得到 <span style="font-family:monospace">GoldWord.app</span>，拖入"应用程序"。如提示未知开发者：系统设置→隐私与安全→允许。</div></div></div>
+        <div class="info-card"><div class="info-icon">🍎</div><div><div style="font-weight:600;color:#007aff">macOS 安装包（DMG）</div><div style="color:#555">打开 DMG，将应用拖入"应用程序"。首次运行参考上方允许步骤。</div></div></div>
+        <div class="info-card"><div class="info-icon">🤖</div><div><div style="font-weight:600;color:#22c55e">Android 平板版 APK</div><div style="color:#555">在平板设备安装 APK，设置"允许未知来源"。适配大屏横屏体验。</div></div></div>
+        <div class="info-card"><div class="info-icon">📱</div><div><div style="font-weight:600;color:#22c55e">Android 手机版 APK</div><div style="color:#555">手机安装 APK，授予语音权限以使用朗读功能。</div></div></div>
+        <div class="info-card"><div class="info-icon">🧿</div><div><div style="font-weight:600;color:#5856d6">iPad 安装包（IPA）</div><div style="color:#555">企业/测试分发：Safari 安装后，设置→通用→设备管理→信任证书。</div></div></div>
+        <div class="info-card"><div class="info-icon">⊞</div><div><div style="font-weight:600;color:#333">Windows 安装包</div><div style="color:#555">下载 EXE 或 ZIP。如被拦截选择"仍要运行/保留"。ZIP 解压后双击运行。</div></div></div>
+        <div class="info-card"><div class="info-icon">🍎</div><div><div style="font-weight:600;color:#8e8e93">macOS 安装包（ZIP）</div><div style="color:#555">解压得到应用，适合无法挂载 DMG 的环境。</div></div></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  (async function(){
+    const CDN_BASE = 'https://www.caishen.us.kg';
+    const GITHUB_BASE = 'https://github.com/zixiang2008/GoldWord/releases/download';
+    
+    const verEl = document.getElementById('ver');
+    const grid = document.getElementById('grid');
+    
+    function fmtSize(bytes) { 
+      if(!bytes && bytes!==0) return ''; 
+      const u=['B','KB','MB','GB']; 
+      let i=0; 
+      let v=Number(bytes); 
+      while(v>=1024&&i<u.length-1){ v/=1024; i++; } 
+      return `${v.toFixed(i?2:0)} ${u[i]}`; 
+    }
+    
+    function fmtDate(s) { 
+      try{ 
+        const d=new Date(s); 
+        if(isNaN(d.getTime())) return ''; 
+        const y=d.getFullYear(); 
+        const m=String(d.getMonth()+1).padStart(2,'0'); 
+        const da=String(d.getDate()).padStart(2,'0'); 
+        const hh=String(d.getHours()).padStart(2,'0'); 
+        const mm=String(d.getMinutes()).padStart(2,'0'); 
+        return `${y}-${m}-${da} ${hh}:${mm}`; 
+      } catch(_) { 
+        return ''; 
+      } 
+    }
+    
+    function createDownloadCard(title, description, cdnUrl, githubUrl, size, mtime, fileName) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      const h3 = document.createElement('h3');
+      h3.textContent = title;
+      card.appendChild(h3);
+      
+      if(description) {
+        const desc = document.createElement('div');
+        desc.className = 'desc';
+        desc.textContent = description;
+        card.appendChild(desc);
+      }
+      
+      if(size || mtime) {
+        const sizeInfo = document.createElement('div');
+        sizeInfo.className = 'size-info';
+        sizeInfo.textContent = `文件大小：${size ? fmtSize(size) : '—'} ｜ 更新时间：${mtime ? fmtDate(mtime) : '—'}`;
+        card.appendChild(sizeInfo);
+      }
+      
+      const badge = document.createElement('div');
+      badge.className = 'cdn-badge';
+      badge.textContent = 'CDN加速';
+      card.appendChild(badge);
+      
+      const downloadGroup = document.createElement('div');
+      downloadGroup.className = 'download-group';
+      
+      if(cdnUrl) {
+        const cdnLink = document.createElement('a');
+        cdnLink.href = cdnUrl;
+        cdnLink.className = 'cdn-link';
+        cdnLink.textContent = 'CDN下载';
+        cdnLink.target = '_blank';
+        downloadGroup.appendChild(cdnLink);
+      }
+      
+      if(githubUrl) {
+        const githubLink = document.createElement('a');
+        githubLink.href = githubUrl;
+        githubLink.className = 'github-link';
+        githubLink.textContent = 'GitHub下载';
+        githubLink.target = '_blank';
+        downloadGroup.appendChild(githubLink);
+      }
+      
+      card.appendChild(downloadGroup);
+      return card;
+    }
+    
+    function createFeedbackCard() {
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      const h3 = document.createElement('h3');
+      h3.textContent = '快速反馈';
+      card.appendChild(h3);
+      
+      const p = document.createElement('div');
+      p.textContent = '提交问题与建议';
+      card.appendChild(p);
+      
+      const a = document.createElement('a');
+      a.href = 'https://github.com/zixiang2008/GoldWord/issues';
+      a.textContent = '打开 Issues';
+      a.target = '_blank';
+      a.className = 'github-link';
+      card.appendChild(a);
+      
+      return card;
+    }
+    
+    try {
+      let cdnLinks = [];
+      cdnLinks = await fetch('cdn-links-generated.json').then(r => r.json());
+      const versions = cdnLinks
+        .map(x => (x.filename.match(/(\d+\.\d+\.\d+)/) || [])[1])
+        .filter(Boolean);
+      const cmp = (a,b) => {
+        const pa=a.split('.').map(Number), pb=b.split('.').map(Number);
+        for(let i=0;i<3;i++){ if((pa[i]||0)!==(pb[i]||0)) return (pa[i]||0)-(pb[i]||0); }
+        return 0;
+      };
+      const latest = versions.sort(cmp).pop();
+      verEl.textContent = latest ? `当前版本：${latest}` : '当前版本：未知';
+      function classify(name){
+        const f=name.toLowerCase();
+        if(f.endsWith('.apk')){ if(f.includes('pad')) return 'android-pad'; if(f.includes('phone')) return 'android-phone'; return 'android'; }
+        if(f.endsWith('.ipa')) return 'ipad';
+        if(f.endsWith('.dmg')) return 'mac-dmg';
+        if(f.endsWith('.zip')){
+          if(f.includes('.app.zip')) return 'mac-app';
+          if(f.includes('mac')) return 'mac-zip';
+          if(f.includes('win')) return 'win';
+          return 'zip';
+        }
+        if(f.endsWith('.exe')) return 'win';
+        return null;
+      }
+      const groups = {
+        'mac-app': { title:'macOS 安装包.app', description:'解压得到 GoldWord.app，拖入"应用程序"' },
+        'mac-dmg': { title:'macOS 安装包（DMG）', description:'打开DMG，将应用拖入"应用程序"' },
+        'mac-zip': { title:'macOS 安装包（ZIP）', description:'解压得到应用，适合无法挂载DMG的环境' },
+        'android-pad': { title:'Android 平板版 APK', description:'适配大屏横屏体验' },
+        'android-phone': { title:'Android 手机版 APK', description:'手机安装，授予语音权限以使用朗读功能' },
+        'ipad': { title:'iPad 安装包（IPA）', description:'企业/测试分发，需信任证书' },
+        'win': { title:'Windows 安装包', description:'EXE或ZIP格式，如被拦截选择"仍要运行"' }
+      };
+      const byGroup = {};
+      cdnLinks.forEach(item=>{ const t=classify(item.filename); if(!t) return; if(!byGroup[t]) byGroup[t]=[]; byGroup[t].push(item); });
+      for(const [key, meta] of Object.entries(groups)){
+        const files = byGroup[key]||[];
+        if(files.length===0) continue;
+        const f = files[0];
+        const cdnUrl = f.cdnUrl || `${CDN_BASE}/${encodeURIComponent(f.filename)}`;
+        const version = (f.filename.match(/(\d+\.\d+\.\d+)/) || [])[1] || latest || '';
+        const githubUrl = `${GITHUB_BASE}/v${version}/${encodeURIComponent(f.filename)}`;
+        const card = createDownloadCard(meta.title, meta.description, cdnUrl, githubUrl, f.size, null, f.filename);
+        grid.appendChild(card);
+      }
+      grid.appendChild(createFeedbackCard());
+    } catch(e) {
+      console.error('加载失败:', e);
+      verEl.textContent = '加载失败，请刷新页面重试';
+    }
+  })()
+  </script>
+</body>
+</html>

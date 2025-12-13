@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldWord 多语言系统 - 简化测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007aff;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .language-selector {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        #translation-demo {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border: 1px solid #b8daff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 GoldWord 多语言系统测试</h1>
+        
+        <div class="test-section">
+            <h3>系统状态</h3>
+            <div id="system-status" class="test-result info">正在检查系统状态...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>功能测试</h3>
+            <button onclick="runBasicTests()">🔍 运行基础测试</button>
+            <button onclick="testTranslation()">🔄 测试翻译功能</button>
+            <button onclick="testLanguageSwitching()">🌐 测试语言切换</button>
+            <button onclick="testAITranslation()">🤖 测试AI翻译</button>
+            <div id="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>语言选择器</h3>
+            <div id="language-selector-container"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>翻译演示</h3>
+            <div id="translation-demo">
+                <p><strong>当前语言:</strong> <span id="current-lang">-</span></p>
+                <p><strong>测试文本:</strong> <span id="test-text">Hello World</span></p>
+                <p><strong>翻译结果:</strong> <span id="translated-text">-</span></p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>数据管理</h3>
+            <button onclick="exportData()">📤 导出数据</button>
+            <button onclick="importData()">📥 导入数据</button>
+            <button onclick="showSystemInfo()">ℹ️ 系统信息</button>
+        </div>
+    </div>
+
+    <script src="language-system/language-system-complete-updated.js"></script>
+    <script>
+        // 全局变量
+        let testResults = [];
+        
+        // 页面加载时初始化
+        window.addEventListener('load', async function() {
+            console.log('🚀 开始初始化多语言系统...');
+            await initializeSystem();
+        });
+        
+        // 初始化系统
+        async function initializeSystem() {
+            const statusEl = document.getElementById('system-status');
+            
+            try {
+                statusEl.textContent = '正在初始化多语言系统...';
+                
+                // 检查语言系统是否存在
+                if (typeof LanguageSystem === 'undefined') {
+                    throw new Error('LanguageSystem 未定义 - 请检查脚本文件是否正确加载');
+                }
+                
+                console.log('✅ LanguageSystem 已找到，开始初始化...');
+                
+                // 初始化系统
+                const initSuccess = await LanguageSystem.init({
+                    defaultLanguage: 'zh-CN',
+                    enableAutoDetect: true,
+                    enableCache: true,
+                    enableAI: true
+                });
+                
+                if (initSuccess) {
+                    statusEl.innerHTML = '<strong style="color: green;">✅ 系统初始化成功</strong>';
+                    console.log('🎉 多语言系统初始化完成！');
+                    
+                    // 创建语言选择器
+                    createLanguageSelector();
+                    
+                    // 更新当前语言显示
+                    updateCurrentLanguage();
+                    
+                } else {
+                    throw new Error('系统初始化返回失败状态');
+                }
+                
+            } catch (error) {
+                console.error('❌ 系统初始化失败:', error);
+                statusEl.innerHTML = `<strong style="color: red;">❌ 系统初始化失败:</strong><br>${error.message}`;
+            }
+        }
+        
+        // 创建语言选择器
+        function createLanguageSelector() {
+            try {
+                const container = document.getElementById('language-selector-container');
+                const selector = LanguageSystem.createLanguageSelector();
+                
+                // 添加事件监听
+                selector.addEventListener('change', function() {
+                    updateCurrentLanguage();
+                    updateTranslationDemo();
+                });
+                
+                container.appendChild(selector);
+                addTestResult('语言选择器', '成功创建', 'success');
+                
+            } catch (error) {
+                addTestResult('语言选择器', `创建失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 更新当前语言显示
+        function updateCurrentLanguage() {
+            const currentLang = LanguageSystem.getCurrentLanguage();
+            document.getElementById('current-lang').textContent = currentLang;
+            
+            const langInfo = LanguageSystem.getLanguageInfo(currentLang);
+            if (langInfo) {
+                document.getElementById('current-lang').textContent = `${langInfo.flag} ${langInfo.name} (${currentLang})`;
+            }
+        }
+        
+        // 更新翻译演示
+        function updateTranslationDemo() {
+            try {
+                const testText = document.getElementById('test-text').textContent;
+                const translated = LanguageSystem.t('hello', testText);
+                document.getElementById('translated-text').textContent = translated;
+            } catch (error) {
+                document.getElementById('translated-text').textContent = `翻译错误: ${error.message}`;
+            }
+        }
+        
+        // 运行基础测试
+        function runBasicTests() {
+            clearResults();
+            addTestResult('基础功能测试', '开始测试...', 'info');
+            
+            try {
+                // 测试1: 检查核心功能
+                testCoreFunctions();
+                
+                // 测试2: 检查翻译函数
+                testTranslationFunction();
+                
+                // 测试3: 检查语言信息
+                testLanguageInfo();
+                
+                // 测试4: 检查系统状态
+                testSystemStatus();
+                
+                addTestResult('基础测试', '所有基础测试完成', 'success');
+                
+            } catch (error) {
+                addTestResult('基础测试', `测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试核心功能
+        function testCoreFunctions() {
+            const tests = [
+                { name: '翻译函数 t()', func: () => typeof LanguageSystem.t === 'function' },
+                { name: '语言切换 setLanguage()', func: () => typeof LanguageSystem.setLanguage === 'function' },
+                { name: '语言检测 detectBrowserLanguage()', func: () => typeof LanguageSystem.detectBrowserLanguage === 'function' },
+                { name: '获取当前语言 getCurrentLanguage()', func: () => typeof LanguageSystem.getCurrentLanguage === 'function' },
+                { name: '获取语言信息 getLanguageInfo()', func: () => typeof LanguageSystem.getLanguageInfo === 'function' }
+            ];
+            
+            tests.forEach(test => {
+                try {
+                    const result = test.func();
+                    addTestResult(test.name, result ? '✅ 可用' : '❌ 不可用', result ? 'success' : 'error');
+                } catch (error) {
+                    addTestResult(test.name, `❌ 错误: ${error.message}`, 'error');
+                }
+            });
+        }
+        
+        // 测试翻译函数
+        function testTranslationFunction() {
+            try {
+                const testCases = [
+                    { key: 'hello', fallback: 'Hello', expected: 'Hello' },
+                    { key: 'test_key', fallback: 'Test Text', expected: 'Test Text' }
+                ];
+                
+                testCases.forEach(testCase => {
+                    const result = LanguageSystem.t(testCase.key, testCase.fallback);
+                    const success = result === testCase.expected;
+                    addTestResult(`翻译测试: ${testCase.key}`, 
+                        success ? `✅ 正确: "${result}"` : `❌ 错误: 期望 "${testCase.expected}", 得到 "${result}"`, 
+                        success ? 'success' : 'error');
+                });
+                
+            } catch (error) {
+                addTestResult('翻译函数测试', `❌ 错误: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试语言信息
+        function testLanguageInfo() {
+            try {
+                const languages = ['zh-CN', 'en-US', 'th', 'ja'];
+                
+                languages.forEach(lang => {
+                    const info = LanguageSystem.getLanguageInfo(lang);
+                    if (info && info.name) {
+                        addTestResult(`语言信息: ${lang}`, `✅ ${info.flag} ${info.name}`, 'success');
+                    } else {
+                        addTestResult(`语言信息: ${lang}`, '❌ 信息不可用', 'error');
+                    }
+                });
+                
+            } catch (error) {
+                addTestResult('语言信息测试', `❌ 错误: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试系统状态
+        function testSystemStatus() {
+            try {
+                const status = LanguageSystem.getSystemStatus();
+                addTestResult('系统状态', 
+                    `版本: ${status.version}<br>` +
+                    `初始化: ${status.initialized ? '✅' : '❌'}<br>` +
+                    `当前语言: ${status.currentLanguage}<br>` +
+                    `支持语言: ${status.supportedLanguages}种<br>` +
+                    `翻译键数: ${status.translationKeys}<br>` +
+                    `缓存大小: ${status.cacheSize}<br>` +
+                    `历史记录: ${status.historySize}`, 
+                    'info');
+                
+            } catch (error) {
+                addTestResult('系统状态测试', `❌ 错误: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试翻译功能
+        function testTranslation() {
+            clearResults();
+            addTestResult('翻译功能测试', '开始测试翻译功能...', 'info');
+            
+            try {
+                const currentLang = LanguageSystem.getCurrentLanguage();
+                const testTexts = ['Hello', 'World', 'Good morning', 'Thank you'];
+                
+                testTexts.forEach(text => {
+                    try {
+                        const translated = LanguageSystem.t(text.toLowerCase().replace(' ', '_'), text);
+                        addTestResult(`翻译: "${text}"`, `结果: "${translated}"`, 'info');
+                    } catch (error) {
+                        addTestResult(`翻译: "${text}"`, `错误: ${error.message}`, 'error');
+                    }
+                });
+                
+                addTestResult('翻译测试', '翻译功能测试完成', 'success');
+                
+            } catch (error) {
+                addTestResult('翻译测试', `测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试语言切换
+        async function testLanguageSwitching() {
+            clearResults();
+            addTestResult('语言切换测试', '开始测试语言切换功能...', 'info');
+            
+            try {
+                const languages = ['zh-CN', 'en-US', 'th'];
+                const originalLang = LanguageSystem.getCurrentLanguage();
+                
+                for (const lang of languages) {
+                    try {
+                        await LanguageSystem.setLanguage(lang);
+                        const currentLang = LanguageSystem.getCurrentLanguage();
+                        const success = currentLang === lang;
+                        
+                        addTestResult(`切换语言: ${lang}`, 
+                            success ? `✅ 成功切换到 ${lang}` : `❌ 切换失败，当前语言: ${currentLang}`, 
+                            success ? 'success' : 'error');
+                            
+                        // 延迟一下，让切换生效
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                    } catch (error) {
+                        addTestResult(`切换语言: ${lang}`, `❌ 错误: ${error.message}`, 'error');
+                    }
+                }
+                
+                // 恢复原语言
+                await LanguageSystem.setLanguage(originalLang);
+                addTestResult('语言切换', '语言切换测试完成', 'success');
+                
+            } catch (error) {
+                addTestResult('语言切换测试', `测试失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 测试AI翻译
+        async function testAITranslation() {
+            clearResults();
+            addTestResult('AI翻译测试', '开始测试AI翻译功能...', 'info');
+            
+            try {
+                const testText = "Hello World";
+                const targetLang = 'zh-CN';
+                
+                addTestResult('AI翻译', `测试文本: "${testText}"`, 'info');
+                addTestResult('AI翻译', `目标语言: ${targetLang}`, 'info');
+                
+                // 使用AI翻译
+                const result = await LanguageSystem.translateWithAI(testText, targetLang, 'en');
+                
+                if (result && result !== testText) {
+                    addTestResult('AI翻译结果', `✅ "${result}"`, 'success');
+                } else {
+                    addTestResult('AI翻译结果', '❌ 翻译失败或结果相同', 'error');
+                }
+                
+            } catch (error) {
+                addTestResult('AI翻译', `❌ 错误: ${error.message}`, 'error');
+                addTestResult('AI翻译提示', '注意: AI翻译使用模拟API，需要配置真实API密钥', 'info');
+            }
+        }
+        
+        // 导出数据
+        function exportData() {
+            try {
+                LanguageSystem.exportTranslationData();
+                addTestResult('数据导出', '✅ 翻译数据已导出', 'success');
+            } catch (error) {
+                addTestResult('数据导出', `❌ 导出失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 导入数据
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            LanguageSystem.importTranslationData(data);
+                            addTestResult('数据导入', '✅ 翻译数据已导入', 'success');
+                        } catch (error) {
+                            addTestResult('数据导入', `❌ 导入失败: ${error.message}`, 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+        
+        // 显示系统信息
+        function showSystemInfo() {
+            clearResults();
+            try {
+                const status = LanguageSystem.getSystemStatus();
+                let info = `
+🌍 <strong>GoldWord 多语言系统信息</strong>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 <strong>基本状态:</strong>
+   版本: ${status.version}
+   初始化: ${status.initialized ? '✅' : '❌'}
+   当前语言: ${status.currentLanguage}
+   
+🗣️ <strong>语言支持:</strong>
+   支持语言: ${status.supportedLanguages}种
+   翻译键数: ${status.translationKeys}
+   
+💾 <strong>数据存储:</strong>
+   缓存大小: ${status.cacheSize}
+   历史记录: ${status.historySize}
+   
+🤖 <strong>AI翻译:</strong>
+   AI翻译进行中: ${status.aiTranslationInProgress ? '是' : '否'}
+                `;
+                
+                addTestResult('系统信息', info, 'info');
+                
+            } catch (error) {
+                addTestResult('系统信息', `❌ 获取系统信息失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 辅助函数
+        function addTestResult(title, content, type) {
+            const resultsContainer = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>${title}:</strong> ${content}`;
+            resultsContainer.appendChild(resultDiv);
+            
+            // 滚动到最新结果
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            testResults = [];
+        }
+    </script>
+</body>
+</html>

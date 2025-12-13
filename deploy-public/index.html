@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>GoldWord — 每一个记住的单词，都是一枚金币</title>
+    <!-- Removed external Google Fonts to avoid ORB errors -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007aff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GoldWord">
+    <link rel="apple-touch-icon" href="icons/icon-152x152.svg">
+    <style>
+        :root {
+            --content-width: 90vw;
+            --button-font-size: clamp(0.9rem, 2vw, 1.05rem);
+            --btn-py: clamp(8px, 1.6vw, 12px);
+            --btn-px: clamp(12px, 2.4vw, 18px);
+            --button-padding: var(--btn-py) var(--btn-px);
+            --primary: #007AFF;
+            --success: #34C759;
+            --secondary: #F0F4FF;
+            --bg: #FAF9F7;
+            --text: #333;
+            --text-muted: #888;
+            --border: #E8E8E8;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'SF Pro Display', 'SF Pro Text', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #fff;
+            padding: 24px 20px;
+            box-sizing: border-box;
+            color: var(--text);
+        }
+        
+        .review-button {
+            margin-top: 15px;
+            padding: var(--button-padding);
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: var(--button-font-size);
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .review-button:hover {
+            background-color: #ff5252;
+        }
+        .flashcard-container {
+            perspective: 1000px;
+            width: var(--content-width);
+            /* 动态高度由 JS 计算：占满除下方按钮与信息栏外的剩余空间 */
+            height: auto;
+            min-height: 60vh; /* 首屏兜底，避免云端初始渲染过小 */
+            position: relative;
+            margin: 16px 0 20px 0;
+            border-radius: var(--radius);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease, opacity 0.3s ease;
+            border-radius: var(--radius);
+            background-color: #fff;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+            opacity: 1;
+        }
+        .flashcard-front, .flashcard-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .flashcard-front {
+            background: #fff;
+            color: var(--text);
+            /* 覆盖通用的居中，采用上下布局以实现 2/3 单词区域 */
+            justify-content: flex-start;
+            align-items: stretch;
+            flex-direction: column;
+        }
+        /* 正面单词区域：占卡片高度 2/3 */
+        .front-word-area {
+            flex: 0 0 66.666%;
+            height: 66.666%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        /* 正面详情区域：剩余 1/3 */
+        .flashcard-front .details {
+            flex: 1 0 33.333%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        /* 正面单词更大字号并居中显示 */
+        .flashcard-front .word {
+            font-size: clamp(2.2em, 9vh, 6.2em);
+            margin: 0;
+            white-space: nowrap;
+        }
+        /* 单词放大动画 */
+        @keyframes wordScaleIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .front-word.scale-in { animation: wordScaleIn 600ms ease-out forwards; }
+
+        .flashcard-back {
+            background: #fff;
+            color: var(--text);
+            transform: rotateY(180deg);
+            align-items: flex-start;
+            /* 让背面内容两列占满卡片区域 */
+            padding: 0;
+            overflow-y: auto;
+        }
+        /* 背面两列布局与配色（恢复旧版并调整右侧行序） */
+        .flashcard-back .word { display: none; }
+            .back-columns { display: grid; grid-template-columns: 3fr 2fr; gap: 0; width: 100%; height: 100%; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .back-left { background: #fff; padding: 14px; border-right: 1px solid var(--border); }
+        .back-right { background: var(--secondary); padding: 14px; display: flex; flex-direction: column; min-height: 100%; }
+        .back-right .right-word { font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif; font-weight: 700; font-size: clamp(2rem, 4.5vw, 2.5rem); color: var(--primary); flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-start; word-wrap: break-word; overflow-wrap: break-word; }
+        .back-right .right-chinese, .back-right .right-phonetics, .back-right .right-pos, .back-right .right-memoassoc { font-size: clamp(1em, 2vw, 1.125em); color: var(--text); margin-top: 6px; }
+        .back-right .right-memoassoc { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+
+        .word {
+            font-size: clamp(2.25em, 6vw, 36px);
+            font-weight: 700;
+            margin: 0 0 12px 0;
+            text-align: center;
+            color: var(--primary);
+        }
+        .details {
+            font-size: clamp(1em, 2vw, 1.125em);
+            text-align: left;
+            line-height: 1.6;
+            max-width: 95%;
+        }
+        /* 顶部 .word 不显示，单词显示在右列的第一行（right-word） */
+        .flashcard-back .details {
+            text-align: left;
+            max-width: 100%;
+            width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            flex: 1;
+            height: 100%;
+            padding: 0;
+            overflow-y: auto;
+            font-size: clamp(1em, 2vw, 1.125em);
+            line-height: 1.6;
+        }
+        /* 两列占满容器高度 */
+        .back-left, .back-right { height: 100%; }
+        .details .label { color: var(--text); font-weight: 600; margin-right: 6px; }
+        .details .value { color: var(--text); }
+        .details .row {
+            margin: 6px 0;
+        }
+        /* 新增：标题-正文独立块样式 */
+        .details .block { margin: 10px 0; }
+        .details .heading { color: #8b5c3e; font-weight: 700; }
+        .details .content { color: #5a3b2a; margin-top: 4px; white-space: pre-wrap; }
+        #gpt-brief-block { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; width: var(--content-width); }
+        /* 第一行五个主按钮：自动播放、翻转、记得、朗读、学习模式 */
+        .buttons { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); grid-auto-rows: 1fr; gap: 10px; width: 100%; }
+        /* 第二行五项：倒计时、英/英式、中文口音、倍速、个人中心（单行等宽缩放） */
+        .buttons-secondary { display: grid; grid-template-columns: repeat(5, minmax(80px, 1fr)); grid-auto-rows: 1fr; gap: 10px; width: 100%; }
+        .auto-play-controls { display: none; }
+        .review-buttons {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: var(--content-width);
+            max-height: 20vh;
+            overflow-y: auto;
+        }
+        .flashcard.flipped ~ .review-buttons {
+            display: flex;
+        }
+        button, select {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: var(--button-padding);
+            font-size: var(--button-font-size);
+            font-weight: 600;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--text);
+            background-color: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            min-height: clamp(40px, 6vh, 52px);
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            touch-action: manipulation;
+        }
+        /* 双行按钮（垂直排列文字） */
+        .two-line-btn { flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; text-align: center; }
+        .two-line-btn .sub { font-weight: 500; color: var(--text); opacity: 0.9; font-size: calc(var(--button-font-size) * 0.9); }
+        button:hover, select:hover { transform: scale(0.98); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        button:active, select:active { transform: scale(0.97); }
+        .flip-button, .next-button, .correct-button, .incorrect-button { color: #fff; border-color: transparent; }
+        .flip-button { background-color: var(--primary); }
+        .next-button { background-color: var(--primary); }
+        /* 朗读按钮：默认白底蓝字，开启时蓝底白字 */
+        .speak-button { background: #fff; color: var(--primary); border: 1px solid var(--border); }
+        .correct-button { background-color: #22c55e; }
+        .correct-button:hover { background-color: #16a34a; }
+        .incorrect-button { background-color: #ef4444; }
+        .incorrect-button:hover { background-color: #dc2626; }
+        .review-button { background-color: #5856d6; color: #fff; border-color: transparent; }
+        /* 记得按钮：点击后绿色显示，并在下一词恢复默认蓝色 */
+        #addNewWordBtn.active { background-color: #22c55e; color: #fff; border-color: transparent; }
+        #addNewWordBtn.active:hover { background-color: #16a34a; }
+        /* 自动播放按钮：默认白色，开启时为主色 */
+        .auto-button { background: #fff; color: var(--primary); border: 1px solid var(--border); }
+        .auto-on.auto-button { background: var(--primary); color: #fff; border-color: transparent; }
+        /* 覆盖：背面右侧复习按钮靠左，矩形且支持激活态（紧随联想行显示，不再吸附底部） */
+        .back-right .review-button { align-self: flex-start; padding: var(--button-padding); border-radius: var(--radius); display: inline-flex; align-items: center; gap: 8px; font-size: var(--button-font-size); background: #fff; color: var(--primary); border: 1px solid var(--border); }
+        .back-right .review-button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .back-right .review-button .icon { width: 20px; height: 20px; color: currentColor; }
+        /* 右侧单词区域：独立块，宽度100%，由JS动态适配字号 */
+        .back-right .right-word { display: block; width: 100%; font-weight: 800; line-height: 1.05; }
+        select { appearance: none; padding-right: 35px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%23333" d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 12px center; }
+        .speech-rate, .accent { background-color: #fff; }
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        .stats { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: var(--content-width); padding: 12px; background-color: #fff; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: clamp(12px, 1.6vw, 14px); color: var(--text-muted); gap: 8px; }
+        .countdown-left { position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-weight: 800; line-height: 1; color: var(--primary); pointer-events: none; text-align: left; padding-left: 1ch; }
+        .stats div {
+            text-align: center;
+        }
+        /* 统一两行信息的上下边距，以当前上边距为基准 */
+        .stats-row { margin: 4px 0; }
+        .progress-container { width: 100%; background-color: #f3f3f5; border-radius: 8px; height: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: var(--primary); transition: width 0.3s ease; }
+        /* 信息栏内联进度条（用于与复习进度百分比对应） */
+                .inline-progress { display:block; width: 100%; height: 8px; background:#f3f3f5; border-radius: 8px; vertical-align: middle; margin-left: 6px; overflow:hidden; }
+                .inline-progress-bar { height:100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
+        .auto-indicator { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; margin-left: 6px; }
+        .auto-on .auto-indicator { background: #34c759; box-shadow: 0 0 0 3px rgba(52,199,89,0.2); }
+        @media (max-width: 600px) {
+            .flashcard-container {
+                width: 95vw;
+                /* 移动端使用动态高度；保证最小可见面积 */
+                height: auto;
+                min-height: 52vh;
+            }
+            .word {
+                font-size: clamp(1.2rem, 5vw, 2rem);
+            }
+            .details {
+                font-size: clamp(0.9rem, 3.2vw, 1.05rem);
+            }
+            button, select {
+                padding: var(--button-padding);
+                font-size: var(--button-font-size);
+                min-height: clamp(38px, 6.4vh, 50px);
+            }
+            .progress-container {
+                height: 8px;
+            }
+            .icon {
+                width: 18px;
+                height: 18px;
+            }
+            .buttons { grid-template-columns: repeat(2, 1fr); }
+            .buttons-secondary { grid-template-columns: repeat(3, 1fr); }
+            body { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+        }
+        @media (max-width: 430px) {
+            :root { --button-font-size: clamp(0.85rem, 2.8vw, 0.98rem); --btn-py: clamp(8px, 2vw, 10px); --btn-px: clamp(12px, 4vw, 16px); --content-width: 95vw; }
+            .buttons { grid-template-columns: repeat(2, 1fr); }
+            .buttons-secondary { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            :root { --button-font-size: clamp(0.85rem, 3vw, 0.95rem); --btn-py: clamp(8px, 2.4vw, 10px); --btn-px: clamp(12px, 4.6vw, 16px); --content-width: 95vw; }
+            .buttons { grid-template-columns: repeat(2, 1fr); }
+            .buttons-secondary { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 375px) {
+            :root { --button-font-size: clamp(0.8rem, 3.2vw, 0.92rem); --btn-py: clamp(8px, 2.8vw, 10px); --btn-px: clamp(12px, 5vw, 16px); }
+            .buttons { grid-template-columns: repeat(2, 1fr); }
+            .buttons-secondary { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* 通用按钮按压特效：按下变绿，0.5秒后恢复 */
+        .flip-button.pressed,
+        .next-button.pressed,
+        .speak-button.pressed,
+        .correct-button.pressed,
+        .review-button.pressed,
+        .auto-button.pressed {
+            background-color: var(--success) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+        }
+        .flip-button.pressed .icon,
+        .next-button.pressed .icon,
+        .speak-button.pressed .icon,
+        .correct-button.pressed .icon,
+        .review-button.pressed .icon,
+        .auto-button.pressed .icon { color: #fff !important; }
+
+        /* 状态按钮切换颜色 */
+        .flip-button.toggled,
+        .speak-button.toggled {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: transparent;
+        }
+        .flip-button.toggled .icon,
+        .speak-button.toggled .icon { color: #fff; }
+
+        /* 类型B按钮动画：定义10种动画效果 */
+        /* 1. 涟漪扩散 Ripple */
+        .anim-ripple { position: relative; overflow: hidden; }
+        .anim-ripple::after {
+            content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.4);
+            animation: ripple 500ms ease-out forwards;
+        }
+        @keyframes ripple { from { width:0; height:0; opacity:0.6; } to { width:300px; height:300px; opacity:0; } }
+
+        /* 2. 脉冲跳动 Pulse */
+        .anim-pulse { animation: pulse 500ms ease-in-out; }
+        @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.08);} 100%{transform:scale(1);} }
+
+        /* 3. 弹跳 Bounce */
+        .anim-bounce { animation: bounce 600ms cubic-bezier(0.28,0.84,0.42,1); }
+        @keyframes bounce { 0%{transform:translateY(0);} 30%{transform:translateY(-6px);} 60%{transform:translateY(0);} 80%{transform:translateY(-3px);} 100%{transform:translateY(0);} }
+
+        /* 4. 按压缩放 Press */
+        .anim-press { animation: press 180ms ease-out; }
+        @keyframes press { from{transform:scale(0.95);} to{transform:scale(1);} }
+
+        /* 5. 发光高亮 Glow */
+        .anim-glow { animation: glow 600ms ease-out; }
+        @keyframes glow { 0%{box-shadow:0 0 0 rgba(0,0,0,0);} 50%{box-shadow:0 0 18px rgba(0,122,255,0.55);} 100%{box-shadow:0 0 0 rgba(0,0,0,0);} }
+
+        /* 6. 滑动填充 Slide Fill */
+        .anim-slide-fill { position: relative; overflow: hidden; }
+        .anim-slide-fill::before { content:""; position:absolute; left:0; top:0; height:100%; width:0%; background: rgba(0,122,255,0.2); animation: slideFill 400ms ease-out forwards; }
+        @keyframes slideFill { from{width:0%;} to{width:100%;} }
+
+        /* 7. 翻转 Flip */
+        .anim-flip { transform-style: preserve-3d; animation: flip 500ms ease-out; }
+        @keyframes flip { from{transform:rotateY(0deg);} to{transform:rotateY(180deg);} }
+
+        /* 8. 加载圈 Loading Spinner */
+        .anim-spinner { position: relative; color: transparent !important; }
+        .anim-spinner::after { content:""; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); width:18px; height:18px; border:2px solid rgba(255,255,255,0.6); border-top-color: rgba(255,255,255,1); border-radius:50%; animation: spin 700ms linear infinite; }
+        @keyframes spin { from{ transform:translate(-50%, -50%) rotate(0deg);} to{ transform:translate(-50%, -50%) rotate(360deg);} }
+
+        /* 9. 颜色切换 Colour Swap */
+        .anim-colour-swap { filter: invert(1) hue-rotate(180deg); }
+
+        /* 10. 抬起 Lift */
+        .anim-lift { animation: lift 300ms ease-out; }
+        @keyframes lift { from{ transform:translateY(0); box-shadow:none; } to{ transform:translateY(-3px); box-shadow:0 8px 16px rgba(0,0,0,0.18); } }
+
+
+.right-sep { border: 0; border-top: 1px dashed #c4a484; margin: 8px 0; }
+</style>
+<style>
+  /* 暂停态：渐变橙色背景 */
+  body.paused { background: linear-gradient(135deg, #FFE0B2 0%, #FFB74D 50%, #FF9800 100%); }
+  /* 记得按钮：默认蓝色，激活绿色 */
+  .correct-button.active { background:#2ecc71 !important; color:#fff !important; }
+
+        /* 通用按钮按压特效：按下变绿，0.5秒后恢复 */
+        .flip-button.pressed,
+        .next-button.pressed,
+        .speak-button.pressed,
+        .correct-button.pressed,
+        .review-button.pressed,
+        .auto-button.pressed {
+            background-color: var(--success) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+        }
+        .flip-button.pressed .icon,
+        .next-button.pressed .icon,
+        .speak-button.pressed .icon,
+        .correct-button.pressed .icon,
+        .review-button.pressed .icon,
+        .auto-button.pressed .icon { color: #fff !important; }
+
+        /* 状态按钮切换颜色 */
+        .flip-button.toggled,
+        .speak-button.toggled {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: transparent;
+        }
+        .flip-button.toggled .icon,
+        .speak-button.toggled .icon { color: #fff; }
+
+        /* 增强服务状态指示器（底部简约信息栏） */
+        .enhancement-status {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid #e0e0e0;
+            border-left: none;
+            border-right: none;
+            border-bottom: none;
+            padding: 6px 10px;
+            font-size: 12px;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            justify-content: center;
+        }
+        .enhancement-status:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        .status-indicator.ready { background: #4caf50; }
+        .status-indicator.working { 
+            background: #ff9800; 
+            animation: pulse 1.5s infinite;
+        }
+        .status-indicator.error { background: #f44336; }
+        .status-indicator.disabled { background: #9e9e9e; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 移动端避免底栏遮挡内容 */
+        @media (max-width: 768px) {
+            body { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+        }
+
+
+.right-sep { border: 0; border-top: 1px dashed #c4a484; margin: 8px 0; }
+</style>
+</head>
+<body>
+    <!-- 增强服务状态指示器 -->
+    <div class="enhancement-status" id="enhancementStatus" title="点击查看增强服务状态详情">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <span id="statusText">检查中...</span>
+        <span id="appVersion" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); color:#555; font-weight:600;"></span>
+    </div>
+    
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard">
+            <div class="flashcard-front">
+                <div class="front-word-area">
+                    <div class="word front-word" id="word">Remote</div>
+                </div>
+                <div class="details" id="front-details">[rɪˈmoʊt] adj.</div>
+            </div>
+            <div class="flashcard-back">
+                <div class="word" id="back-word"></div>
+                <div class="details" id="back-details">
+                    中文: 偏远的; 遥远的<br>
+                    定义: Far away from other places or people.<br>
+                    搭配: Remote island (偏远岛屿)<br>
+                    记忆: 联想 Remote control（遥控器）
+                </div>
+                <button id="dontRememberTopBtn" class="review-button" title="将此单词标记为需要复习，会再次出现在学习列表中">要复习</button>
+            </div>
+        </div>
+    </div>
+    <div class="controls">
+        <!-- 第一行：主要操作按钮 -->
+        <div class="buttons">
+            <!-- 自动播放放到第一位 -->
+            <button class="next-button auto-button" id="autoPlayBtn" title="自动播放当前卡片流程">▶️ 自动播放<span class="auto-indicator"></span></button>
+            <button class="flip-button">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M4 15h2v3l6-6-6-6v3H4v6zm16-6h-2V6l-6 6 6 6v-3h2v-6z"/>
+                </svg>
+                🔁 翻转卡片
+            </button>
+            <!-- 记忆循环答题按钮 -->
+            <button class="correct-button" id="correctBtn" data-translate="true" title="记得，进入下一个记忆阶段">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                记得
+            </button>
+            <!-- 读单词按钮（开启为蓝色自动读，关闭为白色不读；点击开启时朗读一次） -->
+            <button class="speak-button" title="读当前单词">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                读单词
+            </button>
+            
+                        <select class="speech-rate" id="learnMode" title="学习模式发音顺序">
+                <option value="en1" selected>英文一次</option>
+                <option value="en1zh1">英文/中文一次</option>
+                <option value="en2">英文两次</option>
+                <option value="en2zh1">英文两次中文一次</option>
+            </select>
+        </div>
+        <!-- 第二行：辅助功能与选择（倒计时、美式/英式、倍速、个人中心） -->
+        <div class="buttons-secondary">
+            <!-- 倒计时选择器移到最左侧 -->
+            <select class="speech-rate" id="countdownTime" title="设置自动播放倒计时时长">
+                <option value="1">1秒倒计时</option>
+                <option value="2">2秒倒计时</option>
+                <option value="3" selected>3秒倒计时</option>
+                <option value="4">4秒倒计时</option>
+                <option value="5">5秒倒计时</option>
+                <option value="6">6秒倒计时</option>
+                <option value="7">7秒倒计时</option>
+                <option value="8">8秒倒计时</option>
+                <option value="9">9秒倒计时</option>
+            </select>
+            <!-- 口音切换（仅中文文案） -->
+            <select class="accent" id="accent">
+                <option value="en-US" selected>美式发音</option>
+                <option value="en-GB">英式发音</option>
+            </select>
+            <!-- 中文语音选择（用于 speakChinese） -->
+            <select class="accent-zh" id="accentZh" title="中文发音选择">
+                <option value="zh-CN" selected>中文（大陆普通话）</option>
+                <option value="zh-TW">中文（台湾普通话）</option>
+                <option value="zh">中文（泛中文）</option>
+            </select>
+            <!-- 倍速 -->
+            <select class="speech-rate" id="speechRate">
+                <option value="0.4">0.4倍速</option>
+                <option value="0.6">0.6倍速</option>
+                <option value="0.8">0.8倍速</option>
+                <option value="1" selected>1.0倍速</option>
+                <option value="1.2">1.2倍速</option>
+                <option value="1.4">1.4倍速</option>
+                <option value="1.6">1.6倍速</option>
+                <option value="1.8">1.8倍速</option>
+                <option value="2">2.0倍速</option>
+            </select>
+            <!-- 统一入口：VIP（紧跟倍速选择；单行显示） -->
+            <button id="openAuthPageMainBtn" data-translate="true" title="打开个人中心" style="background:#fff; color: var(--text); border: 1px solid var(--border);">个人中心</button>
+        </div>
+        <!-- 复习相关按钮分离到独立一行（在翻转后显示） -->
+        <div class="review-buttons">
+            <button id="dontRememberBtn" class="review-button">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                </svg>
+                👎 不记得
+            </button>
+            <button id="addNewWordBtn" class="review-button" title="标记该词为生词并进入记忆循环">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 3.99 4 6.5 4c1.74 0 3.41 1.01 4.5 2.09C12.09 5.01 13.76 4 15.5 4 18.01 4 20 6 20 8.5c0 3.78-3.4 6.86-8.05 11.54L12 21.35z"/>
+                </svg>
+                👍 要记住
+            </button>
+            <div id="countdown" style="position: absolute; bottom: 10px; left: 10px; font-size: 24px; font-weight: bold; color: var(--primary);"></div>
+        </div>
+        <div class="stats">
+            <div id="countdownLeft" class="countdown-left"></div>
+            <div class="stats-row">
+                <span>
+                    <span id="currentUserPrefix">👤 当前用户：</span><span id="currentUserLabel">未登录</span>
+                    <span id="totalWordsPrefix"> | 📊 总词数：</span><span id="totalWords">296</span>
+                    <span id="reviewProgressPrefix"> 🔁 复习进度：</span><span id="reviewProgress">0%</span>
+                    <span style="display:inline-block; vertical-align:middle; margin-left:6px;">
+                        <div id="reviewProgressBarContainer" style="display:inline-block; width:120px; height:6px; background:#eee; border-radius:6px; overflow:hidden;">
+                            <div id="reviewProgressBar" style="height:100%; width:0%; background: var(--primary); border-radius:6px;"></div>
+                        </div>
+                    </span>
+                    <!-- 严格覆盖率移动到下一行展示，并在右侧添加进度条 -->
+                </span>
+            </div>
+            <div class="stats-row" style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap;">
+                <span style="flex: 0 0 auto;">
+                    <span id="todayStudyPrefix">📅 今日学习：</span><span id="studiedToday">0</span>
+                    <span> 🔁 要复习：</span><span id="repeatedWords">0</span>
+                </span>
+                <span id="enhancementProgress" style="flex: 0 0 auto;">增强服务未启动</span>
+                <div class="enhancement-progress" style="flex: 1 1 auto; width: auto; min-width: 0; height:6px; background:#eee; border-radius:6px; overflow:hidden; margin-left:8px;">
+                    <div id="enhancementProgressBar" style="height:100%; width:0%; background: var(--primary); border-radius:6px;"></div>
+                </div>
+                <!-- 严格覆盖率（右侧展示） -->
+                <span class="strict-coverage-group" style="display:flex; align-items:center; gap:6px; flex: 0 0 auto; margin-left:auto;">
+                    <span id="strictCoveragePrefix">🧪 严格覆盖率：</span><span id="strictCoverage">0%</span>
+                </span>
+            </div>
+
+            <!-- 增强服务进度条与文本 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 顶部右上角用户管理入口已移除，仅保留下方菜单栏入口 -->
+    </div>
+
+
+
+    <div id="settingsPanel" class="settings-panel" style="position: fixed; inset: 0; display: none; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px);">
+        <div class="settings-content" style="background: #fff; border-radius: 12px; width: 80vw; margin: 6vh auto; padding: 18px 18px 12px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); max-height: 80vh; overflow-y: auto; box-sizing: border-box;">
+            <h3 style="margin:0 0 10px 0;">个人中心</h3>
+            <!-- 登录后用户信息区 -->
+            <div id="userInfoSection" style="display:none; border:1px solid #eee; border-radius:10px; padding:10px; margin-bottom:12px;">
+                <div style="font-weight:600; margin-bottom:6px;">用户信息</div>
+                <div>用户名：<span id="currentUserName">未登录</span></div>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:8px;">
+                    <div>近30天学习：<span id="userStats30Days">0</span></div>
+                    <div>近24小时学习：<span id="userStats24Hours">0</span></div>
+                    <div>总进度：<span id="userTotalProgress">0</span>%</div>
+                    <div>今日目标：<span id="userTodayTarget">—</span></div>
+                </div>
+            </div>
+
+            <!-- 未登录提示区（作为兜底；通常由登录模态与注册覆盖层承载） -->
+            <div id="loginFormSection" style="display:none; border:1px dashed #eee; border-radius:10px; padding:10px; margin-bottom:12px;">
+                <div style="color:#666;">您尚未登录，请点击页面下方“个人中心”进行登录或注册。</div>
+            </div>
+
+            <!-- 管理员用户管理区（仅管理员可见） -->
+            <div id="adminPanelSection" style="display:none; border:1px solid #ffd7a8; background:#fffaf3; border-radius:10px; padding:10px; margin-bottom:12px;">
+                <div style="font-weight:600; margin-bottom:6px;">管理员：用户管理</div>
+                <div style="font-size:12px; color:#8a6d3b; margin-bottom:8px;">仅当以管理员账号（caishen）登录时可见。可查看用户、修改密码、删除与拉黑。</div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                    <input id="adminNewUserId" type="text" placeholder="新用户ID" style="padding:6px; border-radius:8px; border:1px solid #ddd;" />
+                    <input id="adminNewUserName" type="text" placeholder="显示名" style="padding:6px; border-radius:8px; border:1px solid #ddd;" />
+                    <input id="adminNewUserPassword" type="text" placeholder="初始PIN/密码" style="padding:6px; border-radius:8px; border:1px solid #ddd;" />
+                    <button id="adminCreateUserBtn" style="background:#007aff; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">新增/更新用户</button>
+                </div>
+                <div style="font-weight:500; margin-bottom:6px;">已注册用户</div>
+                <div id="adminUsersList" style="display:grid; grid-template-columns: 1fr auto auto auto; gap:6px; align-items:center;"></div>
+            </div>
+            <div style="position: sticky; top: 0; background: #fff; z-index: 2; display:flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
+                <h3 style="margin: 0;">个人中心</h3>
+                <div style="display:flex; align-items:center; gap:8px; position: relative;">
+                    <button id="settingsUserMenuButton" data-translate="true" style="border:none; background:#f2f2f2; border-radius:8px; padding:6px 10px; cursor:pointer;">个人中心 ▾</button>
+                    <div id="settingsUserMenuDropdown" style="display:none; position: absolute; top: 42px; right: 96px; background:#fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 220px;">
+                        <button id="settingsMenuUserBtn" style="width:100%; padding:10px 12px; border:none; background:#fff; color: var(--text); text-align: left; cursor:pointer;">用户登录</button>
+                        <button id="settingsMenuAuthBtn" style="width:100%; padding:10px 12px; border:none; background:#fff; color: var(--text); text-align: left; cursor:pointer;">用户注册</button>
+                        <button id="settingsMenuImportBtn" style="width:100%; padding:10px 12px; border:none; background:#fff; color: var(--text); text-align: left; cursor:pointer; display:none;">导入词库</button>
+                        <button id="settingsMenuExportBtn" style="width:100%; padding:10px 12px; border:none; background:#fff; color: var(--text); text-align: left; cursor:pointer; display:none;">导出词库</button>
+                        <div style="border-top:1px solid #eee; margin:6px 0;"></div>
+                        <div style="padding:8px; font-weight:600; color:#555;">界面语言</div>
+                        <button id="langZhBtn" style="width:100%; padding:8px 12px; border:none; background:#fff; color: var(--text); text-align:left; cursor:pointer;">🇨🇳 简体中文</button>
+                        <button id="langEnBtn" style="width:100%; padding:8px 12px; border:none; background:#fff; color: var(--text); text-align:left; cursor:pointer;">🇺🇸 English (US)</button>
+                        <button id="langThBtn" style="width:100%; padding:8px 12px; border:none; background:#fff; color: var(--text); text-align:left; cursor:pointer;">🇹🇭 ภาษาไทย</button>
+                        <button id="langJaBtn" style="width:100%; padding:8px 12px; border:none; background:#fff; color: var(--text); text-align:left; cursor:pointer;">🇯🇵 日本語</button>
+                        <button id="langEsBtn" style="width:100%; padding:8px 12px; border:none; background:#fff; color: var(--text); text-align:left; cursor:pointer;">🇪🇸 Español</button>
+                    </div>
+                    <button id="closeSettingsBtn" style="border:none; background:#eee; border-radius:8px; padding:6px 10px; cursor:pointer;">关闭</button>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 12px;">
+                <div>
+                    <div id="importFileHeader" style="font-weight:600; margin-bottom:6px;">导入文件</div>
+                    <input type="file" id="fileInput" accept=".json,.csv,.xlsx,.xls,.txt" />
+                    <div style="font-size:12px; color:#666; margin-top:6px;">支持格式：JSON（推荐）、CSV、XLSX/XLS、TXT。建议使用标准模板。</div>
+                    <button id="downloadTemplateBtn" style="margin-top:6px; background:#4caf50; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">下载标准模板（JSON）</button>
+                </div>
+                <div>
+                <div id="importHeader" style="font-weight:600; margin-bottom:6px;">导入 JSON / 在线批量导入</div>
+                    <textarea id="jsonInput" rows="6" placeholder="在此粘贴：所有单词用英文逗号间隔，例如：apple, banana, cherry" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;"></textarea>
+                    <div style="font-size:12px; color:#666; margin-top:6px;">提示：可点击下方“GPT 提取单词”自动识别文本中的英文单词并生成英文逗号列表。</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                        <button id="importJsonBtn" style="background:#007aff; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">导入 JSON</button>
+                        <button id="importTextBtn" style="background:#5856d6; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">从文本导入</button>
+                        <button id="gptExtractBtn" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;" title="从上方文本中识别英文单词并生成英文逗号列表">GPT 提取单词</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button id="exportJsonBtn" style="background:#34c759; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">导出当前词库</button>
+                    <button id="clearDataBtn" style="background:#ff3b30; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">清空词库</button>
+                    <button id="restoreOriginalBtn" style="background:#007aff; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">恢复原始词库</button>
+                </div>
+                <!-- 个人中心区域已移除：功能由右上角入口覆盖 -->
+                <div style="border-top:1px solid #eee; padding-top:10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>总词数：<span id="settingsTotalWords">0</span></div>
+                    <div>复习进度：<span id="settingsReviewProgress">0%</span></div>
+                    <div>严格覆盖率：<span id="settingsStrictCoverage">0%</span></div>
+                </div>
+                <!-- 统一注册/登录页面（覆盖层） -->
+                <div id="authPage" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(2px); z-index: 2000;">
+                    <div style="background:#fff; border-radius:12px; width: 60vw; margin: 8vh auto; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-height: 80vh; overflow-y:auto;">
+                        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+                            <h3 id="authHeader" style="margin:0;">用户注册 / 登录</h3>
+                            <button id="authCloseBtn" style="border:none; background:#eee; border-radius:8px; padding:6px 10px; cursor:pointer;">返回</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <input id="authUserId" type="text" placeholder="账号（支持中文/英文/邮箱）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                            <input id="authUserName" type="text" placeholder="显示名（可选）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+                            <input id="authPin" type="password" placeholder="PIN（4位数字；管理员输入密码）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                            <input id="authPinConfirm" type="password" placeholder="确认 PIN（注册时）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        </div>
+                        <div style="font-size:12px; color:#666; margin-top:6px;">提示：普通用户使用 4 位 PIN；管理员账号为隐藏账号，不在界面中提示。</div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                            <button id="authRegisterBtn" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">注册</button>
+                            <button id="authLoginBtn" style="background:#5856d6; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">登录</button>
+                            <button id="authLogoutBtn" style="background:#8e8e93; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">退出登录</button>
+                        </div>
+                        <div id="authStatus" style="margin-top:8px; color:#555; min-height:20px;"></div>
+                    </div>
+                </div>
+                <!-- 登录弹窗（模态框），点击“登录”时弹出 -->
+                <div id="loginModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.40); backdrop-filter: blur(2px); z-index: 2100;">
+                    <div style="background:#fff; border-radius:12px; width: 420px; max-width: 90vw; margin: 14vh auto; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+                            <h3 style="margin:0;">用户登录</h3>
+                            <button id="loginModalCloseBtn" style="border:none; background:#eee; border-radius:8px; padding:6px 10px; cursor:pointer;">返回</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr; gap:8px;">
+                            <input id="loginModalUserId" type="text" placeholder="账号（支持中文/英文/邮箱）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                            <input id="loginModalPin" type="password" placeholder="PIN（4位数字；管理员输入密码）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                            <button id="loginModalConfirmBtn" style="background:#5856d6; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">登录</button>
+                        </div>
+                        <div id="loginModalStatus" style="margin-top:8px; color:#555; min-height:20px;"></div>
+                    </div>
+                </div>
+                <!-- 语音测试 -->
+                <div style="border-top:1px solid #eee; padding-top:12px;">
+                <div id="voiceTestHeader" style="font-weight:600; margin-bottom:8px;">语音测试</div>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <button id="ttsTestBtn" style="background:#ff9500; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">测试语音</button>
+                        <span id="ttsTestStatus" style="color:#555; font-size:14px; min-height:20px;"></span>
+                    </div>
+                </div>
+                <!-- GPT 服务设置 -->
+                <div style="border-top:1px solid #eee; padding-top:12px;">
+                    <div style="font-weight:600; margin-bottom:8px;">GPT 服务设置</div>
+                    <div style="display:grid; grid-template-columns: 1fr; gap:8px;">
+<label for="gptModelSelect" style="font-size:14px; color:#555;"><span id="modelLabel">选择内置模型：</span><a href="api-settings-guide.html" target="_blank" style="margin-left:8px; color:#007aff; text-decoration:none;">API设置指导</a><a href="https://api.apiyi.com/register/?aff_code=V1Kp" target="_blank" style="margin-left:8px; color:#007aff; text-decoration:none;">付费GPT模型平台</a></label>
+                        <select id="gptModelSelect" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;"></select>
+                        <div id="gptHelpInfo" style="font-size:12px; color:#666; background:#f8f9fa; border-radius:8px; padding:8px;">
+从下拉列表选择模型后，将自动填充 API 地址与模型名。文档：<a href="https://docs.apiyi.com/api-manual" target="_blank">https://docs.apiyi.com/api-manual</a> ｜ 资源：<a href="https://docs.apiyi.com/resources#qwen-api-%E6%96%87%E6%A1%A3" target="_blank">Qwen 模型资源</a>
+                        </div>
+                        <input id="gptBaseUrl" type="text" placeholder="API 基础地址，例如 https://api.openai.com" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <input id="gptModel" type="text" placeholder="模型名，例如 gpt-4o-mini 或其它免费模型" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <input id="gptApiKey" type="password" placeholder="API 密钥（仅本机保存）" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button id="gptSaveBtn" style="background:#007aff; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">保存设置</button>
+                            <button id="gptTestBtn" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;">测试设置</button>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:14px; color:#555;">
+                                <input type="checkbox" id="cfgGptOnlyModeCheckbox" /> 仅使用GPT（禁用本地兜底）
+                            </label>
+                            <button id="gptEnhanceLabel" type="button" title="增强 服务调试工具的快捷选项" aria-label="GPT增强"
+                                    style="margin-left:auto; display:flex; align-items:center; background:#f0f6ff; color:#007aff; border:1px solid #d0e7ff; border-radius:8px; padding:6px 10px; font-size:13px; cursor:pointer;">
+                                GPT增强
+                            </button>
+                        </div>
+                        <div id="gptTestStatus" style="margin-top:6px; color:#555; font-size:14px; min-height:20px;"></div>
+                        <!-- 卡片显示项配置：固定标签 + Prompt + 代表含义（存入数据库） -->
+                        <div style="margin-top:12px; border-top:1px solid #eee; padding-top:12px;">
+                            <div id="cardDisplayHeader" style="font-weight:600; margin-bottom:8px;">卡片显示项 - Prompt 与代表含义配置</div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+                                <button id="cfgImportSystemPromptsBtn" style="background:#5856d6; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">导入系统 Prompt 模板</button>
+                                <button id="cfgEnableFieldPromptsBtn" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">启用自定义 Prompt</button>
+                                <button id="cfgCopyAllPromptsBtn" style="background:#8e8e93; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">复制所有 Prompt</button>
+                                <button id="cfgImportAllPromptsBtn" style="background:#ff9f0a; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">导入所有 Prompt</button>
+                                <span id="cfgPromptStatus" style="color:#555; font-size:14px; min-height:20px;"></span>
+                            </div>
+                            <div style="display:grid; grid-template-columns: 180px 1fr; gap:8px; align-items:center;">
+                                <div id="displayContent" style="font-weight:500; color:#555;">显示内容</div>
+                                <div id="gptPromptLabel" style="font-weight:500; color:#555;">GPT 对应 Prompt（可编辑）</div>
+                                <div id="fixed_word">单词（固定）</div>
+                                <input id="cfgFieldPrompt_word" placeholder="例如：请返回该单词的英文原词" />
+                                <div id="fixed_chinese">中文解释（固定）</div>
+                                <input id="cfgFieldPrompt_chinese" placeholder="例如：给出简洁中文释义" />
+                                <div id="fixed_phonetic">音标（固定）</div>
+                                <input id="cfgFieldPrompt_phonetic" placeholder="例如：返回标准英式/美式音标" />
+                                <div id="fixed_pos">词性（固定）</div>
+                                <input id="cfgFieldPrompt_pos" placeholder="例如：返回主要词性（n/v/adj等）" />
+                                <div id="fixed_memory">记忆要点（固定）</div>
+                                <input id="cfgFieldPrompt_memory" placeholder="例如：给出1-2条记忆要点" />
+                                <div id="fixed_association">联想（固定）</div>
+                                <input id="cfgFieldPrompt_association" placeholder="例如：提供形象的联想描述" />
+                                <div id="fixed_definition">主要用法/定义（固定）</div>
+                                <input id="cfgFieldPrompt_definition" placeholder="例如：给出简洁定义与主要用法" />
+                                <div id="fixed_brief">简述（可选）</div>
+                                <input id="cfgFieldPrompt_brief" placeholder="例如：15字以内中文简述（可含音标/词性/搭配）" />
+                                <div id="fixed_collocation">固定搭配（固定）</div>
+            <input id="cfgFieldPrompt_collocation" placeholder="3个固定搭配，英文：中文解释；每一个解释占一行的Prompt" />
+                                <div id="fixed_example">例句（固定）</div>
+            <input id="cfgFieldPrompt_example" placeholder="用最基础的2500单词和这个单词造句 ，并且翻译成中文；一个造句3个不同句式表达，每行一个；" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // StorageAdapter 回退机制
+        window.SA = window.SA || (typeof StorageAdapter !== 'undefined' ? StorageAdapter : {
+            getItem: (key) => localStorage.getItem(key),
+            setItem: (key, value) => localStorage.setItem(key, value),
+            removeItem: (key) => localStorage.removeItem(key),
+            getJSON: (key) => {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                } catch (_) {
+                    return null;
+                }
+            },
+            setJSON: (key, value) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (_) {}
+            }
+        });
+
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= (filteredData[index + 1]?.filter(filledCell)?.length || 0)
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        const words = [{"word": "Remote", "pronunciation": "[rɪˈmoʊt]", "partOfSpeech": "adj.", "chinese": "偏远的; 遥远的", "definition": "Far away from other places or people.", "collocation": "Remote island (偏远岛屿)", "mnemonic": "联想 Remote control（遥控器）", "needsReview": false}, {"word": "Inhabited", "pronunciation": "[ɪnˈhæbɪtɪd]", "partOfSpeech": "adj.", "chinese": "有人居住的", "definition": "People live there.", "collocation": "Remote inhabited islands (偏远有人居住的岛屿)", "mnemonic": "记忆：In-（在内）+ habit（居住）", "needsReview": false}, {"word": "Depend on", "pronunciation": "[dɪˈpend ɑːn]", "partOfSpeech": "v.", "chinese": "依赖; 取决于", "definition": "To need someone/something to survive or succeed.", "collocation": "Depend on each other (互相依赖)", "mnemonic": "表达生存依赖", "needsReview": false}, {"word": "Privacy", "pronunciation": "[ˈpraɪvəsi]", "partOfSpeech": "n.", "chinese": "隐私; 独处时间", "definition": "Private time or space for yourself.", "collocation": "", "mnemonic": "联想：（私人的）", "needsReview": false}, {"word": "Isolated", "pronunciation": "[ˈaɪsəleɪtɪd]", "partOfSpeech": "adj.", "chinese": "孤立的; 孤独的", "definition": "Separate from other people or places.", "collocation": "The island is isolated.", "mnemonic": "联想：I (我) + solo (独奏) → 孤立", "needsReview": false}, {"word": "Supplies", "pronunciation": "[səˈplaɪz]", "partOfSpeech": "n.", "chinese": "补给品; 必需品", "definition": "Food, equipment, or other things people need.", "collocation": "", "mnemonic": "联想： (供应链)", "needsReview": false}, {"word": "Opportunity", "pronunciation": "[ˌɑːpərˈtuːnəti]", "partOfSpeech": "n.", "chinese": "机会; 时机", "definition": "Something you can do to improve your situation.", "collocation": "Limited job opportunities (有限的工作机会)", "mnemonic": "应用： (错过机会)", "needsReview": false}, {"word": "Emergency", "pronunciation": "[ɪˈmɜːrdʒənsi]", "partOfSpeech": "n.", "chinese": "紧急情况; 突发事件", "definition": "A dangerous medical situation.", "collocation": "Emergency plan (应急计划)", "mnemonic": "学习： (急救)", "needsReview": false}, {"word": "Trade", "pronunciation": "[treɪd]", "partOfSpeech": "v./n.", "chinese": "交换; 贸易", "definition": "To exchange one thing for another.", "collocation": "Free trade (自由贸易)", "mnemonic": "应用： (国际贸易)", "needsReview": false}, {"word": "Nature", "pronunciation": "[ˈneɪtʃər]", "partOfSpeech": "n.", "chinese": "自然; 大自然", "definition": "The natural world.", "collocation": "Spend time in nature (花时间在大自然中)", "mnemonic": "学习：有助于改善 (思想)", "needsReview": false}, {"word": "Local", "pronunciation": "[ˈloʊkl]", "partOfSpeech": "adj./n.", "chinese": "当地的; 本地的", "definition": "Belonging to a specific area or place.", "collocation": "Local people/foods (当地人/食物)", "mnemonic": "联想： (当地公园)", "needsReview": false}, {"word": "Souvenir", "pronunciation": "[ˌsuːvəˈnɪr]", "partOfSpeech": "n.", "chinese": "纪念品", "definition": "An object kept as a reminder of a place or event.", "collocation": "", "mnemonic": "学习：用于旅行", "needsReview": false}, {"word": "Tourism", "pronunciation": "[ˈtʊrɪzəm]", "partOfSpeech": "n.", "chinese": "旅游业; 观光", "definition": "The business or activity of traveling for pleasure.", "collocation": "", "mnemonic": "联想：由 (游客) 衍生", "needsReview": false}, {"word": "Backpacking", "pronunciation": "[ˈbækpækɪŋ]", "partOfSpeech": "n.", "chinese": "背包旅行", "definition": "Traveling with a backpack, usually on a budget.", "collocation": "", "mnemonic": "学习： (极简背包客)", "needsReview": false}, {"word": "Impact", "pronunciation": "[ˈɪmpækt]", "partOfSpeech": "n./v.", "chinese": "影响; 冲击", "definition": "The effect or influence something has.", "collocation": "Bad impact (不良影响)", "mnemonic": "应用： on local communities (对当地社区的影响)", "needsReview": false}, {"word": "Environment", "pronunciation": "[ɪnˈvaɪrənmənt]", "partOfSpeech": "n.", "chinese": "环境; 周围", "definition": "The surroundings or place where you are.", "collocation": "Natural environment (自然环境)", "mnemonic": "学习：旅游业对 的影响", "needsReview": false}, {"word": "Infrastructure", "pronunciation": "[ˈɪnfrəstrʌktʃər]", "partOfSpeech": "n.", "chinese": "基础设施", "definition": "Roads, bridges, and buildings in a country.", "collocation": "", "mnemonic": "记忆：国家的底层结构", "needsReview": false}, {"word": "Disaster", "pronunciation": "[dɪˈzæstər]", "partOfSpeech": "n.", "chinese": "灾难; 祸患", "definition": "A very bad event like a flood or earthquake.", "collocation": "Natural disaster (自然灾害)", "mnemonic": "学习： (人为灾难)", "needsReview": false}, {"word": "Resilience", "pronunciation": "[rɪˈzɪliəns]", "partOfSpeech": "n.", "chinese": "恢复力; 适应能力", "definition": "The ability to get better after something bad.", "collocation": "", "mnemonic": "学习： (健身) 锻炼", "needsReview": false}, {"word": "Aid", "pronunciation": "[eɪd]", "partOfSpeech": "n.", "chinese": "帮助; 援助", "definition": "Help, usually from other countries or groups.", "collocation": "Foreign aid (外国援助)", "mnemonic": "学习： (急救)", "needsReview": false}, {"word": "Climate crisis", "pronunciation": "[ˈklaɪmət ˈkraɪsɪs]", "partOfSpeech": "n.", "chinese": "气候危机", "definition": "Big problems caused by changes in the world's weather.", "collocation": "", "mnemonic": "学习：带来 (极端天气)", "needsReview": false}, {"word": "Evacuate", "pronunciation": "[ɪˈvækjueɪt]", "partOfSpeech": "v.", "chinese": "撤离; 疏散", "definition": "To leave a place because it is not safe.", "collocation": "", "mnemonic": "学习： (撤离他们的家)", "needsReview": false}, {"word": "Continents", "pronunciation": "[ˈkɑːntɪnənts]", "partOfSpeech": "n.", "chinese": "大陆", "definition": "Large landmasses on Earth.", "collocation": "", "mnemonic": "联想：七大洲", "needsReview": false}, {"word": "Homelessness", "pronunciation": "[ˈhoʊmləsnəs]", "partOfSpeech": "n.", "chinese": "无家可归", "definition": "The state of having no place to live.", "collocation": "", "mnemonic": "联想：与 (住房) 问题相关", "needsReview": false}, {"word": "Trillion", "pronunciation": "[ˈtrɪljən]", "partOfSpeech": "n.", "chinese": "万亿", "definition": "1,000,000,000,000 (a very big number).", "collocation": "", "mnemonic": "学习：1 = 1 万亿", "needsReview": false}, {"word": "Million", "pronunciation": "[ˈmɪljən]", "partOfSpeech": "n.", "chinese": "百万", "definition": "1,000,000 (a very big number).", "collocation": "", "mnemonic": "学习：1 = 100 万", "needsReview": false}, {"word": "Thousand", "pronunciation": "[ˈθaʊzənd]", "partOfSpeech": "n.", "chinese": "千", "definition": "1,000.", "collocation": "", "mnemonic": "学习：基本数字", "needsReview": false}, {"word": "Live apart", "pronunciation": "[lɪv əˈpɑːrt]", "partOfSpeech": "phrase", "chinese": "分居", "definition": "To live in different places; often separated.", "collocation": "", "mnemonic": "学习：常指夫妻或情侣", "needsReview": false}, {"word": "Fictional", "pronunciation": "[ˈfɪkʃənl]", "partOfSpeech": "adj.", "chinese": "虚构的; 小说的", "definition": "Not real; made for a story or movie.", "collocation": "", "mnemonic": "联想：Fiction（小说）的形容词", "needsReview": false}, {"word": "Animated", "pronunciation": "[ˈænɪmeɪtɪd]", "partOfSpeech": "adj.", "chinese": "动画的; 活生生的", "definition": "A movie made with drawings or computer images.", "collocation": "", "mnemonic": "联想： (动画电影)", "needsReview": false}, {"word": "In disguise", "pronunciation": "[ɪn dɪsˈɡaɪz]", "partOfSpeech": "n.", "chinese": "伪装; 乔装", "definition": "Hiding your real identity or appearance.", "collocation": "", "mnemonic": "学习：常用于描述隐藏身份", "needsReview": false}, {"word": "Enemy", "pronunciation": "[ˈenəmi]", "partOfSpeech": "n.", "chinese": "敌人; 恶魔", "definition": "Someone who wants to fight or hurt you.", "collocation": "", "mnemonic": "学习：", "needsReview": false}, {"word": "Soundtrack", "pronunciation": "[ˈsaʊndtræk]", "partOfSpeech": "n.", "chinese": "原声带; 配乐", "definition": "The music from a film.", "collocation": "", "mnemonic": "记忆：Sound（声音）+ track（轨道）", "needsReview": false}, {"word": "Idol", "pronunciation": "[ˈaɪdl]", "partOfSpeech": "n.", "chinese": "偶像; 崇拜对象", "definition": "A famous singer or performer in K-pop.", "collocation": "", "mnemonic": "学习：", "needsReview": false}, {"word": "Released", "pronunciation": "[rɪˈliːst]", "partOfSpeech": "v./adj.", "chinese": "发行; 发布", "definition": "Made available to the public.", "collocation": "The song was released (歌曲发行了)", "mnemonic": "学习： (发行专辑/歌曲)", "needsReview": false}, {"word": "Obsessed", "pronunciation": "[əbˈsest]", "partOfSpeech": "adj.", "chinese": "着迷的; 痴迷的", "definition": "Thinking about something all the time.", "collocation": "Keeping you obsessed (让你保持痴迷)", "mnemonic": "学习：对偶像的过度关注", "needsReview": false}, {"word": "On repeat", "pronunciation": "[rɪˈpiːt]", "partOfSpeech": "phrase", "chinese": "反复播放", "definition": "To do or say something again and again.", "collocation": "", "mnemonic": "学习：形容歌曲在脑中循环", "needsReview": false}, {"word": "Verse", "pronunciation": "[vɜːrs]", "partOfSpeech": "n.", "chinese": "韵文; 歌曲（主歌）", "definition": "A part of a song with lyrics different to the chorus.", "collocation": "", "mnemonic": "学习：歌曲结构的一部分", "needsReview": false}, {"word": "Sanctuary", "pronunciation": "[ˈsæŋktʃueri]", "partOfSpeech": "n.", "chinese": "圣地; 庇护所", "definition": "A safe, peaceful place.", "collocation": "The idol says they can be your sanctuary.", "mnemonic": "学习：比 更神圣", "needsReview": false}, {"word": "Soul", "pronunciation": "[soʊl]", "partOfSpeech": "n.", "chinese": "灵魂; 精神上的", "definition": "The spiritual or emotional part of a person.", "collocation": "", "mnemonic": "学习： (全心全意)", "needsReview": false}, {"word": "Sins", "pronunciation": "[sɪnz]", "partOfSpeech": "n.", "chinese": "罪恶; 罪行", "definition": "Bad or wrong actions (often religious meaning).", "collocation": "", "mnemonic": "学习：通常指宗教意义上的错误行为", "needsReview": false}, {"word": "Fame", "pronunciation": "[feɪm]", "partOfSpeech": "n.", "chinese": "名声; 名气", "definition": "Being known by many people.", "collocation": "Shining fame (闪耀名声)", "mnemonic": "联想： (名利双收)", "needsReview": false}, {"word": "Pain", "pronunciation": "[peɪn]", "partOfSpeech": "n.", "chinese": "疼痛; 痛苦", "definition": "A feeling of deep hurt or sadness.", "collocation": "Thank you for the pain (感谢痛苦)", "mnemonic": "学习：Pain", "needsReview": false}, {"word": "Viral", "pronunciation": "[ˈvaɪrəl]", "partOfSpeech": "adj.", "chinese": "病毒式传播的; 爆红的", "definition": "Spreading very fast, especially online.", "collocation": "Went viral (爆红)", "mnemonic": "联想：Virus（病毒）→ 像病毒一样迅速传播", "needsReview": false}, {"word": "Shame", "pronunciation": "[ʃeɪm]", "partOfSpeech": "n.", "chinese": "羞耻; 耻辱", "definition": "The bad feeling when you do something wrong.", "collocation": "Hide the shame (隐藏羞耻)", "mnemonic": "学习：常与 (痛苦) 一起使用", "needsReview": false}, {"word": "Connection", "pronunciation": "[kəˈnekʃn]", "partOfSpeech": "n.", "chinese": "联系; 连接", "definition": "A strong link or feeling between two people.", "collocation": "Obsession feeds our connection (痴迷滋养了我们的联系)", "mnemonic": "学习： (社交关系)", "needsReview": false}, {"word": "Attention", "pronunciation": "[əˈtenʃn]", "partOfSpeech": "n.", "chinese": "关注; 注意力", "definition": "Focus or interest.", "collocation": "Give me all your attention (给我你所有的关注)", "mnemonic": "学习： (公众关注)", "needsReview": false}, {"word": "Too late", "pronunciation": "[tuː leɪt]", "partOfSpeech": "phrase", "chinese": "太晚了", "definition": "Something already happened and can't be changed.", "collocation": "", "mnemonic": "学习：强调已无法改变的事实", "needsReview": false}, {"word": "Famous", "pronunciation": "[ˈfeɪməs]", "partOfSpeech": "adj.", "chinese": "著名的", "definition": "Well-known by many people.", "collocation": "Famous pop star (著名流行歌星)", "mnemonic": "联想：由 (名声) 衍生", "needsReview": false}, {"word": "Actress", "pronunciation": "[ˈæktrəs]", "partOfSpeech": "n.", "chinese": "女演员", "definition": "A woman who acts in movies or TV shows.", "collocation": "", "mnemonic": "学习：Lady Gaga 也是一位", "needsReview": false}, {"word": "Awards", "pronunciation": "[əˈwɔːrdz]", "partOfSpeech": "n.", "chinese": "奖项", "definition": "Prizes given for doing something well.", "collocation": "Won many awards (赢得了许多奖项)", "mnemonic": "学习：如 (格莱美) 和 (奥斯卡)", "needsReview": false}, {"word": "Unique", "pronunciation": "[juːˈniːk]", "partOfSpeech": "adj.", "chinese": "独特的", "definition": "Different from everyone else.", "collocation": "Unique style (独特风格)", "mnemonic": "学习： 和 performances", "needsReview": false}, {"word": "Style", "pronunciation": "[staɪl]", "partOfSpeech": "n.", "chinese": "风格; 时尚", "definition": "A way of doing things, like fashion or music.", "collocation": "", "mnemonic": "联想：", "needsReview": false}, {"word": "Bold", "pronunciation": "[boʊld]", "partOfSpeech": "adj.", "chinese": "大胆的; 勇敢的", "definition": "Very brave and not afraid.", "collocation": "Bold clothes (大胆的衣服)", "mnemonic": "联想到 : 也可以指粗体", "needsReview": false}, {"word": "Performances", "pronunciation": "[pərˈfɔːrmənsɪz]", "partOfSpeech": "n.", "chinese": "表演; 性能", "definition": "Shows or actions where someone entertains an audience.", "collocation": "Amazing performances (精彩表演)", "mnemonic": "学习： (现场表演)", "needsReview": false}, {"word": "Perform", "pronunciation": "[pərˈfɔːrm]", "partOfSpeech": "v.", "chinese": "表演; 执行", "definition": "To sing, dance, or act for an audience.", "collocation": "", "mnemonic": "学习： (在音乐会上表演)", "needsReview": false}, {"word": "Worldwide", "pronunciation": "[ˌwɜːrldˈwaɪd]", "partOfSpeech": "adv.", "chinese": "全球范围地", "definition": "All around the world.", "collocation": "Popular worldwide (全球流行)", "mnemonic": "联想： (全世界)", "needsReview": false}, {"word": "Inspire", "pronunciation": "[ɪnˈspaɪər]", "partOfSpeech": "v.", "chinese": "启发; 激励", "definition": "To make someone want to do something good.", "collocation": "Inspired by Elton John (受到埃尔顿·约翰的启发)", "mnemonic": "联想： (形容词：有灵感的)", "needsReview": false}, {"word": "Ballad", "pronunciation": "[ˈbæləd]", "partOfSpeech": "n.", "chinese": "抒情歌", "definition": "A slow, emotional song that tells a story.", "collocation": "", "mnemonic": "学习：Adele 的歌常是", "needsReview": false}, {"word": "Iconic", "pronunciation": "[aɪˈkɑːnɪk]", "partOfSpeech": "adj.", "chinese": "标志性的; 偶像级的", "definition": "Very famous and easy to recognise.", "collocation": "Iconic singer (标志性歌手)", "mnemonic": "联想：Icon (图标、偶像) 的形容词", "needsReview": false}, {"word": "Collaborate", "pronunciation": "[kəˈlæbəreɪt]", "partOfSpeech": "v.", "chinese": "合作; 协作", "definition": "To work together with someone to create or do something.", "collocation": "", "mnemonic": "学习： (合作音乐)", "needsReview": false}, {"word": "Debut", "pronunciation": "[deɪˈbjuː]", "partOfSpeech": "n./v.", "chinese": "首次亮相; 处女作", "definition": "A person's first performance or appearance.", "collocation": "Debut single (首支单曲)", "mnemonic": "学习： (处女作电影)", "needsReview": false}, {"word": "Original", "pronunciation": "[əˈrɪdʒənl]", "partOfSpeech": "adj.", "chinese": "原始的; 独创的", "definition": "First or earliest.", "collocation": "Original members (原始成员)", "mnemonic": "联想： (独创性)", "needsReview": false}, {"word": "Versions", "pronunciation": "[ˈvɜːrʒnz]", "partOfSpeech": "n.", "chinese": "版本", "definition": "A form or type of something.", "collocation": "Fun versions of themselves (有趣的自我版本)", "mnemonic": "联想： (视力)", "needsReview": false}, {"word": "Described", "pronunciation": "[dɪˈskraɪbd]", "partOfSpeech": "v.", "chinese": "描述", "definition": "To say what something looks or feels like.", "collocation": "Adele described the setting.", "mnemonic": "学习： (描述环境)", "needsReview": false}, {"word": "Setting", "pronunciation": "[ˈsetɪŋ]", "partOfSpeech": "n.", "chinese": "环境; 设定", "definition": "The feeling, situation, or atmosphere that the song creates.", "collocation": "", "mnemonic": "学习：有助于理解情绪和故事背景", "needsReview": false}, {"word": "Acquaintances", "pronunciation": "[əˈkweɪntənsɪz]", "partOfSpeech": "n.", "chinese": "认识的人", "definition": "People you know a little about but not a lot.", "collocation": "", "mnemonic": "学习：比 关系更远", "needsReview": false}, {"word": "Realised", "pronunciation": "[ˈriːəlaɪzd]", "partOfSpeech": "v.", "chinese": "意识到", "definition": "To suddenly understand or know something.", "collocation": "I realised I missed you.", "mnemonic": "联想： (突然明白)", "needsReview": false}, {"word": "Restless", "pronunciation": "[ˈrestləs]", "partOfSpeech": "adj.", "chinese": "烦躁不安的", "definition": "Feeling like you can't relax or stay still.", "collocation": "", "mnemonic": "联想：Getting old made us", "needsReview": false}, {"word": "Admit", "pronunciation": "[ədˈmɪt]", "partOfSpeech": "v.", "chinese": "承认; 录取", "definition": "To say something is true, usually something hard.", "collocation": "I admit I was wrong (我承认我错了)", "mnemonic": "学习： I still care (承认我仍在乎)", "needsReview": false}, {"word": "Keep", "pronunciation": "[kiːp]", "partOfSpeech": "v.", "chinese": "继续; 保持", "definition": "To continue doing something.", "collocation": "Keep thinking (继续思考)", "mnemonic": "学习： (保持简单)", "needsReview": false}, {"word": "Just in case", "pronunciation": "[dʒʌst ɪn keɪs]", "partOfSpeech": "phrase", "chinese": "以防; 保险起见", "definition": "For protection or preparation, if something happens.", "collocation": "I brought an umbrella just in case it rains.", "mnemonic": "应用：I brought an umbrella it rains", "needsReview": false}, {"word": "I guess", "pronunciation": "[aɪ ɡes]", "partOfSpeech": "phrase", "chinese": "我猜", "definition": "I think so, but I am not sure.", "collocation": "", "mnemonic": "学习：常用于不确定的表达", "needsReview": false}, {"word": "Go straight to my head", "pronunciation": "[ɡoʊ streɪt tuː maɪ hed]", "partOfSpeech": "idiom", "chinese": "冲昏头脑", "definition": "To strongly affect how someone feels and what someone thinks.", "collocation": "", "mnemonic": "形象：话语像酒一样直接冲上头", "needsReview": false}, {"word": "Retired", "pronunciation": "[rɪˈtaɪərd]", "partOfSpeech": "adj./v.", "chinese": "退休的", "definition": "Stopped working or performing.", "collocation": "Retired from performing (退休表演)", "mnemonic": "学习： (退休金)", "needsReview": false}, {"word": "Addiction", "pronunciation": "[əˈdɪkʃn]", "partOfSpeech": "n.", "chinese": "成瘾; 癖好", "definition": "Strong harmful need to keep doing something.", "collocation": "Fighting his addictions (对抗他的成瘾)", "mnemonic": "联想到 (上瘾的)；如 drugs or alcohol", "needsReview": false}, {"word": "Experience", "pronunciation": "[ɪkˈspɪriəns]", "partOfSpeech": "n.", "chinese": "经验; 体验", "definition": "Something you live through or feel.", "collocation": "Difficult experience (困难经历)", "mnemonic": "学习： (我用了自己的经验)", "needsReview": false}, {"word": "Mask", "pronunciation": "[mæsk]", "partOfSpeech": "n./v.", "chinese": "面具; 口罩", "definition": "Something that hides your face or true feelings.", "collocation": "", "mnemonic": "学习： (隐藏身份)", "needsReview": false}, {"word": "Creative", "pronunciation": "[kriˈeɪtɪv]", "partOfSpeech": "adj.", "chinese": "创造性的; 有创意的", "definition": "Making new and interesting ideas.", "collocation": "Creative jobs (创意工作)", "mnemonic": "联想：AI 时代，人需要有 思维", "needsReview": false}, {"word": "Taste", "pronunciation": "[teɪst]", "partOfSpeech": "n./v.", "chinese": "品味; 味道", "definition": "Knowing what looks or sounds good.", "collocation": "Good taste in music (好的音乐品味)", "mnemonic": "学习： (品味) 是未来 A.I. 时代的重要技能", "needsReview": false}, {"word": "Create", "pronunciation": "[kriˈeɪt]", "partOfSpeech": "v.", "chinese": "创造; 制作", "definition": "To make something.", "collocation": "Create pictures (创作图片)", "mnemonic": "同义词：", "needsReview": false}, {"word": "Business", "pronunciation": "[ˈbɪznəs]", "partOfSpeech": "n.", "chinese": "商业; 公司", "definition": "A place that sells things or services.", "collocation": "Small business (小公司)", "mnemonic": "学习： (企业主)", "needsReview": false}, {"word": "Education", "pronunciation": "[ˌedʒuˈkeɪʃn]", "partOfSpeech": "n.", "chinese": "教育", "definition": "Learning in school or class.", "collocation": "Education helps us grow (教育帮助我们成长)", "mnemonic": "学习：", "needsReview": false}, {"word": "Lead", "pronunciation": "[liːd]", "partOfSpeech": "v./n.", "chinese": "引导; 领导", "definition": "To guide or be first.", "collocation": "Lead A.I. (引导 AI)", "mnemonic": "学习： (全球领导者)", "needsReview": false}, {"word": "Stand out", "pronunciation": "[stænd aʊt]", "partOfSpeech": "phrasal v.", "chinese": "突出; 出色", "definition": "To be different and easy to see.", "collocation": "To stand out (脱颖而出)", "mnemonic": "联想：在人群中站立 (stand) 出来 (out)", "needsReview": false}, {"word": "Company", "pronunciation": "[ˈkʌmpəni]", "partOfSpeech": "n.", "chinese": "公司; 伙伴", "definition": "A group that sells things or services.", "collocation": "Start a company (创业)", "mnemonic": "学习： (好伙伴)", "needsReview": false}, {"word": "Clear", "pronunciation": "[klɪr]", "partOfSpeech": "adj.", "chinese": "明确的; 清晰的", "definition": "Easy to see or understand.", "collocation": "Clear answer (明确的答案)", "mnemonic": "学习： (讲清楚)", "needsReview": false}, {"word": "Common", "pronunciation": "[ˈkɑːmən]", "partOfSpeech": "adj.", "chinese": "常见的; 普遍的", "definition": "Happens often or many people know it.", "collocation": "Common food (常见食物)", "mnemonic": "学习：Bread is a common food.", "needsReview": false}, {"word": "Last", "pronunciation": "[læst]", "partOfSpeech": "v.", "chinese": "持续; 耐久", "definition": "To stay good or work for some time.", "collocation": "This bread can last 5 days.", "mnemonic": "学习：食物或时间都可以", "needsReview": false}, {"word": "Ingredients", "pronunciation": "[ɪnˈɡriːdiənts]", "partOfSpeech": "n.", "chinese": "配料; 原料", "definition": "The things used to make food.", "collocation": "Check the ingredients (检查配料)", "mnemonic": "学习：面包的主要", "needsReview": false}, {"word": "Wholegrain", "pronunciation": "[ˈhoʊlɡreɪn]", "partOfSpeech": "n.", "chinese": "全麦", "definition": "Grain that is not changed too much, it is more healthy.", "collocation": "Wholegrain flour (全麦面粉)", "mnemonic": "学习：比白面粉更健康", "needsReview": false}, {"word": "Productive", "pronunciation": "[prəˈdʌktɪv]", "partOfSpeech": "adj.", "chinese": "高效的; 有成效的", "definition": "Getting a lot done.", "collocation": "Productive place (高效的地方)", "mnemonic": "学习：常用于衡量工作效率", "needsReview": false}, {"word": "Endless", "pronunciation": "[ˈendləs]", "partOfSpeech": "adj.", "chinese": "无止境的", "definition": "Going on without stopping.", "collocation": "Endless procrastination (无止境的拖延)", "mnemonic": "联想： (结束) + (没有)", "needsReview": false}, {"word": "Procrastinate", "pronunciation": "[proʊˈkræstɪneɪt]", "partOfSpeech": "v.", "chinese": "拖延", "definition": "Waiting too long to start something.", "collocation": "", "mnemonic": "学习：常在居家办公时发生", "needsReview": false}, {"word": "Despite", "pronunciation": "[dɪˈspaɪt]", "partOfSpeech": "prep.", "chinese": "尽管", "definition": "Even though something is true.", "collocation": "", "mnemonic": "学习： (尽管很累)", "needsReview": false}, {"word": "Workspace", "pronunciation": "[ˈwɜːrkspeɪs]", "partOfSpeech": "n.", "chinese": "工作空间", "definition": "The place where you work.", "collocation": "Ideal workspace (理想工作空间)", "mnemonic": "学习： (保持工作空间清洁)", "needsReview": false}, {"word": "Hectic", "pronunciation": "[ˈhektɪk]", "partOfSpeech": "adj.", "chinese": "繁忙的; 忙乱的", "definition": "Very busy and full of activity.", "collocation": "Hectic coffee shop (繁忙的咖啡店)", "mnemonic": "学习：形容忙碌的一天或地方", "needsReview": false}, {"word": "Socket", "pronunciation": "[ˈsɑːkɪt]", "partOfSpeech": "n.", "chinese": "插座", "definition": "A place to plug in electronic devices.", "collocation": "", "mnemonic": "学习： (插上插头)", "needsReview": false}, {"word": "Distracted", "pronunciation": "[dɪˈstræktɪd]", "partOfSpeech": "adj.", "chinese": "分心的", "definition": "Not able to focus.", "collocation": "Get distracted (分心)", "mnemonic": "学习：噪音 (noise) 容易让人", "needsReview": false}, {"word": "Advantage", "pronunciation": "[ædˈvæntɪdʒ]", "partOfSpeech": "n.", "chinese": "优势; 好处", "definition": "Something that helps you do better.", "collocation": "Take full advantage of (充分利用)", "mnemonic": "学习：居家办公的 (优势)", "needsReview": false}, {"word": "Make up for", "pronunciation": "[meɪk ʌp fɔːr]", "partOfSpeech": "phrasal v.", "chinese": "弥补; 补偿", "definition": "To do something to fix a problem.", "collocation": "Make up for the distractions (弥补分心浪费的时间)", "mnemonic": "学习：常用于修复错误或补偿损失", "needsReview": false}, {"word": "Nowadays", "pronunciation": "[ˈnaʊədeɪz]", "partOfSpeech": "adv.", "chinese": "现在; 如今", "definition": "At the present time, these days.", "collocation": "", "mnemonic": "学习：同义词：", "needsReview": false}, {"word": "Specialized", "pronunciation": "[ˈspeʃəlaɪzd]", "partOfSpeech": "adj.", "chinese": "专门的", "definition": "Having special knowledge or skills.", "collocation": "Specialized in hearing (专门研究听力)", "mnemonic": "学习： doctor (专业医生)", "needsReview": false}, {"word": "Complain", "pronunciation": "[kəmˈpleɪn]", "partOfSpeech": "v.", "chinese": "抱怨", "definition": "To say something is wrong or not good.", "collocation": "Complain about bad hearing (抱怨听力不好)", "mnemonic": "学习： (抱怨天气)", "needsReview": false}, {"word": "Explain", "pronunciation": "[ɪkˈspleɪn]", "partOfSpeech": "v.", "chinese": "解释", "definition": "To make something clear or easy to understand.", "collocation": "", "mnemonic": "学习： (解释这个如何运作)", "needsReview": false}, {"word": "Important", "pronunciation": "[ɪmˈpɔːrtnt]", "partOfSpeech": "adj.", "chinese": "重要的", "definition": "Something that matters a lot.", "collocation": "Important to study (学习很重要)", "mnemonic": "学习： (重要声音)", "needsReview": false}, {"word": "Unimportant", "pronunciation": "[ˌʌnɪmˈpɔːrtnt]", "partOfSpeech": "adj.", "chinese": "不重要的", "definition": "Not important, not necessary.", "collocation": "", "mnemonic": "学习： (不重要的噪音)", "needsReview": false}, {"word": "Tariff", "pronunciation": "[ˈtærɪf]", "partOfSpeech": "n.", "chinese": "关税", "definition": "A tax on things from other countries.", "collocation": "", "mnemonic": "学习：导致进口商品 (昂贵) 的税种", "needsReview": false}, {"word": "Free trade", "pronunciation": "[friː treɪd]", "partOfSpeech": "n.", "chinese": "自由贸易", "definition": "Buying and selling between countries with no extra tax.", "collocation": "", "mnemonic": "学习：有助于商品价格更低", "needsReview": false}, {"word": "Technology", "pronunciation": "[tekˈnɑːlədʒi]", "partOfSpeech": "n.", "chinese": "科技; 技术", "definition": "Tools or machines created by science.", "collocation": "Advanced technology (先进技术)", "mnemonic": "学习：AI 是一种", "needsReview": false}, {"word": "Sustainable", "pronunciation": "[səˈsteɪnəbl]", "partOfSpeech": "adj.", "chinese": "可持续的; 可维持的", "definition": "Good for the environment; not wasting.", "collocation": "Sustainable fashion (可持续时尚)", "mnemonic": "联想：Sustain（维持）+ able（能够）", "needsReview": false}, {"word": "Second-hand", "pronunciation": "[ˌsekənd ˈhænd]", "partOfSpeech": "adj.", "chinese": "二手的; 旧的", "definition": "Not new; used before by someone else.", "collocation": "Second-hand clothes (二手衣服)", "mnemonic": "形象：经过第二只手", "needsReview": false}, {"word": "Repair", "pronunciation": "[rɪˈper]", "partOfSpeech": "v.", "chinese": "修理; 修补", "definition": "Fix something that is broken.", "collocation": "Repair old clothes (修理旧衣服)", "mnemonic": "学习：可持续时尚的一部分", "needsReview": false}, {"word": "Thrift shop", "pronunciation": "[θrɪft ʃɑːp]", "partOfSpeech": "n.", "chinese": "二手店; 慈善店", "definition": "A shop that sells used clothes and things.", "collocation": "Charity shop (慈善商店)", "mnemonic": "联想到 (古着)", "needsReview": false}, {"word": "Stylish", "pronunciation": "[ˈstaɪlɪʃ]", "partOfSpeech": "adj.", "chinese": "时髦的; 有格调的", "definition": "Looks good and is in fashion.", "collocation": "Stylish clothes (时髦的衣服)", "mnemonic": "联想：（风格）的形容词", "needsReview": false}, {"word": "Fabric", "pronunciation": "[ˈfæbrɪk]", "partOfSpeech": "n.", "chinese": "织物; 布料", "definition": "Material used to make clothes.", "collocation": "Soft fabric (柔软的布料)", "mnemonic": "学习： (棉/牛仔布)", "needsReview": false}, {"word": "Quality", "pronunciation": "[ˈkwɑːləti]", "partOfSpeech": "n.", "chinese": "质量; 品质", "definition": "How good something is.", "collocation": "Good quality (好的质量); Quality of life (生活质量)", "mnemonic": "学习：购买衣服时要考虑", "needsReview": false}, {"word": "Waste", "pronunciation": "[weɪst]", "partOfSpeech": "n./v.", "chinese": "废物; 浪费", "definition": "Things we throw away.", "collocation": "Reduce waste (减少浪费)", "mnemonic": "学习： 产生", "needsReview": false}, {"word": "Fast fashion", "pronunciation": "[fæst ˈfæʃn]", "partOfSpeech": "n.", "chinese": "快时尚", "definition": "Cheap clothes made quickly and sold often.", "collocation": "", "mnemonic": "学习：对环境有坏影响", "needsReview": false}, {"word": "Weak", "pronunciation": "[wiːk]", "partOfSpeech": "adj.", "chinese": "虚弱的; 差的", "definition": "Not strong.", "collocation": "Weak thinking (思维变弱)", "mnemonic": "学习： (虚弱的身体)； (微弱信号)", "needsReview": false}, {"word": "Brain", "pronunciation": "[breɪn]", "partOfSpeech": "n.", "chinese": "大脑", "definition": "The part inside your head that helps you think.", "collocation": "Brain works less (大脑工作更少)", "mnemonic": "学习： (脑细胞)； (脑力)", "needsReview": false}, {"word": "Copy", "pronunciation": "[ˈkɑːpi]", "partOfSpeech": "v.", "chinese": "复制; 抄袭", "definition": "To take someone else's work.", "collocation": "Copy and paste (复制粘贴)", "mnemonic": "学习： (复制文件)", "needsReview": false}, {"word": "Paste", "pronunciation": "[peɪst]", "partOfSpeech": "v.", "chinese": "粘贴", "definition": "To put copied words in a new place.", "collocation": "Copy and paste (复制粘贴)", "mnemonic": "学习：常用于电脑操作", "needsReview": false}, {"word": "Active", "pronunciation": "[ˈæktɪv]", "partOfSpeech": "adj.", "chinese": "活跃的; 积极的", "definition": "Doing something, not lazy.", "collocation": "Active lifestyle (活跃的生活方式)", "mnemonic": "学习： (大脑活跃)", "needsReview": false}, {"word": "Worry", "pronunciation": "[ˈwɜːri]", "partOfSpeech": "v./n.", "chinese": "担心; 烦恼", "definition": "Feel bad or afraid about something.", "collocation": "Worry about mold (担心霉菌)", "mnemonic": "联想： (焦虑) 是一种强烈的", "needsReview": false}, {"word": "Protect", "pronunciation": "[prəˈtekt]", "partOfSpeech": "v.", "chinese": "保护; 防护", "definition": "To keep safe.", "collocation": "Protect your health (保护你的健康)", "mnemonic": "学习： yourself from mosquitoes (保护自己免受蚊子侵害)", "needsReview": false}, {"word": "Tournament", "pronunciation": "[ˈtʊrnəmənt]", "partOfSpeech": "n.", "chinese": "比赛", "definition": "A series of contests between a number of competitors.", "collocation": "NBA tournament (NBA 比赛)", "mnemonic": "学习： (体育) 活动", "needsReview": false}, {"word": "Adopt", "pronunciation": "[əˈdɑːpt]", "partOfSpeech": "v.", "chinese": "领养", "definition": "To legally take another's child or animal.", "collocation": "Adopt a pet (领养宠物)", "mnemonic": "学习：", "needsReview": false}, {"word": "Train", "pronunciation": "[treɪn]", "partOfSpeech": "v.", "chinese": "训练", "definition": "To teach or practice a skill.", "collocation": "Train a pet (训练宠物)", "mnemonic": "学习：运动员需要", "needsReview": false}, {"word": "Bark", "pronunciation": "[bɑːrk]", "partOfSpeech": "v.", "chinese": "吠叫", "definition": "The sound a dog makes.", "collocation": "", "mnemonic": "学习： (狗吠叫)", "needsReview": false}, {"word": "Meow", "pronunciation": "[miˈaʊ]", "partOfSpeech": "v.", "chinese": "喵喵叫", "definition": "The sound a cat makes.", "collocation": "", "mnemonic": "学习： (猫喵喵叫)", "needsReview": false}, {"word": "Crawl", "pronunciation": "[krɔːl]", "partOfSpeech": "v.", "chinese": "爬行", "definition": "To move on the hands and knees.", "collocation": "", "mnemonic": "学习：常指婴儿或昆虫的移动方式", "needsReview": false}, {"word": "Hide", "pronunciation": "[haɪd]", "partOfSpeech": "v.", "chinese": "躲藏", "definition": "To put something where it cannot be seen.", "collocation": "Hide from someone (躲避某人)", "mnemonic": "学习：动物会", "needsReview": false}, {"word": "Poisonous", "pronunciation": "[ˈpɔɪzənəs]", "partOfSpeech": "adj.", "chinese": "有毒的", "definition": "Containing poison that is dangerous.", "collocation": "Poisonous spider (毒蜘蛛)", "mnemonic": "学习： (有害的)", "needsReview": false}, {"word": "Respect", "pronunciation": "[rɪˈspekt]", "partOfSpeech": "v./n.", "chinese": "尊重; 遵守", "definition": "To be kind and careful with people and culture.", "collocation": "Respect the rules (遵守规则)", "mnemonic": "学习： (表示尊重)", "needsReview": false}, {"word": "Culture", "pronunciation": "[ˈkʌltʃər]", "partOfSpeech": "n.", "chinese": "文化", "definition": "The way of life, beliefs, and customs of a group.", "collocation": "American culture (美国文化)", "mnemonic": "学习： (不同的文化混合)", "needsReview": false}, {"word": "Ceremony", "pronunciation": "[ˈserəmoʊni]", "partOfSpeech": "n.", "chinese": "仪式", "definition": "A special event or tradition.", "collocation": "Buddhist ceremonies (佛教仪式)", "mnemonic": "学习：如 (火葬)", "needsReview": false}, {"word": "Selfie", "pronunciation": "[ˈselfi]", "partOfSpeech": "n.", "chinese": "自拍", "definition": "A photo you take of yourself.", "collocation": "", "mnemonic": "学习：不应在宗教仪式中拍摄", "needsReview": false}, {"word": "Meditate", "pronunciation": "[ˈmedɪteɪt]", "partOfSpeech": "v.", "chinese": "冥想; 沉思", "definition": "To sit quietly and think or relax.", "collocation": "", "mnemonic": "学习： (名词)", "needsReview": false}, {"word": "Chant", "pronunciation": "[tʃænt]", "partOfSpeech": "v./n.", "chinese": "吟诵; 口号", "definition": "To say or sing words again and again.", "collocation": "Monks chant (僧侣诵经)", "mnemonic": "学习： (喊口号)", "needsReview": false}, {"word": "Cremation", "pronunciation": "[krɪˈmeɪʃn]", "partOfSpeech": "n.", "chinese": "火葬", "definition": "Burning a dead body after death.", "collocation": "", "mnemonic": "学习：寺庙中的一种仪式", "needsReview": false}, {"word": "Enlightenment", "pronunciation": "[ɪnˈlaɪtnmənt]", "partOfSpeech": "n.", "chinese": "顿悟; 启迪", "definition": "A deep understanding or peace in life.", "collocation": "", "mnemonic": "学习： 可以帮助人们找到", "needsReview": false}, {"word": "Stinky", "pronunciation": "[ˈstɪŋki]", "partOfSpeech": "adj.", "chinese": "臭的", "definition": "Having a bad smell.", "collocation": "Stinky shoes (臭鞋)", "mnemonic": "学习： (动词：闻)", "needsReview": false}, {"word": "Attract", "pronunciation": "[əˈtrækt]", "partOfSpeech": "v.", "chinese": "吸引", "definition": "To make something come closer.", "collocation": "Flowers attract bees (花朵吸引蜜蜂)", "mnemonic": "学习： (互相吸引)", "needsReview": false}, {"word": "Boring", "pronunciation": "[ˈbɔːrɪŋ]", "partOfSpeech": "adj.", "chinese": "无聊的", "definition": "Not fun or interesting.", "collocation": "Boring class (无聊的课)", "mnemonic": "学习： (事物/使人无聊)； (人的感受：感到无聊)", "needsReview": false}, {"word": "Messy", "pronunciation": "[ˈmesi]", "partOfSpeech": "adj.", "chinese": "凌乱的", "definition": "Untidy or dirty.", "collocation": "Messy room (凌乱的房间)", "mnemonic": "反义词： (干净的)", "needsReview": false}, {"word": "Junk food", "pronunciation": "[ˈdʒʌŋk fuːd]", "partOfSpeech": "n.", "chinese": "垃圾食品", "definition": "Food with little nutritional value.", "collocation": "", "mnemonic": "学习：减肥应避免", "needsReview": false}, {"word": "Found", "pronunciation": "[faʊnd]", "partOfSpeech": "v.", "chinese": "建立", "definition": "To establish or start a place or organization.", "collocation": "The U.S. was founded in 1776.", "mnemonic": "联想： (创始人)； (基金会)", "needsReview": false}, {"word": "Immigrants", "pronunciation": "[ˈɪmɪɡrənts]", "partOfSpeech": "n.", "chinese": "移民", "definition": "People who come to live in a new country.", "collocation": "", "mnemonic": "学习： (早期移民)", "needsReview": false}, {"word": "Settle", "pronunciation": "[ˈsetl]", "partOfSpeech": "v.", "chinese": "定居", "definition": "To establish a residence in a new place.", "collocation": "", "mnemonic": "学习：移民在一个地方 下来", "needsReview": false}, {"word": "Melting pot", "pronunciation": "[ˈmeltɪŋ pɑːt]", "partOfSpeech": "n.", "chinese": "大熔炉", "definition": "A place where different cultures mix together.", "collocation": "", "mnemonic": "学习：", "needsReview": false}, {"word": "Mix", "pronunciation": "[mɪks]", "partOfSpeech": "v.", "chinese": "混合", "definition": "To combine different things or people.", "collocation": "", "mnemonic": "学习：不同文化", "needsReview": false}, {"word": "Athlete", "pronunciation": "[ˈæθliːt]", "partOfSpeech": "n.", "chinese": "运动员", "definition": "A person trained to compete in sports.", "collocation": "", "mnemonic": "学习：如", "needsReview": false}, {"word": "Vintage", "pronunciation": "[ˈvɪntɪdʒ]", "partOfSpeech": "adj.", "chinese": "古着的; 古典的", "definition": "Something old but of high quality or value.", "collocation": "Vintage clothes (古着衣服)", "mnemonic": "学习： (古着衣服)", "needsReview": false}, {"word": "Fast-drying", "pronunciation": "[fæst ˈdraɪɪŋ]", "partOfSpeech": "adj.", "chinese": "速干的", "definition": "Drying quickly.", "collocation": "", "mnemonic": "学习：常用于衣服面料", "needsReview": false}, {"word": "Bland", "pronunciation": "[blænd]", "partOfSpeech": "adj.", "chinese": "清淡无味的", "definition": "Lacking strong flavor or taste.", "collocation": "", "mnemonic": "联想：与 相对", "needsReview": false}];
+
+        let currentIndex = 0;
+        let speechSynth = window.speechSynthesis;
+        let speechSettings = {
+            rate: 1,
+            lang: 'en-US'
+        };
+        let studiedToday = new Set();
+        let today = new Date().toDateString();
+
+        function safeJsonParse(str, fallback) {
+            try {
+                return JSON.parse(str);
+            } catch (e) {
+                console.warn('Invalid JSON in localStorage:', e && e.message ? e.message : e);
+                return fallback;
+            }
+        }
+
+        function loadStudiedWords() {
+            const stored = SA.getItem('studiedWords');
+            const storedDate = SA.getItem('studiedDate');
+            if (stored && storedDate === today) {
+                studiedToday = new Set(safeJsonParse(stored, []));
+            } else {
+                studiedToday = new Set();
+                SA.setItem('studiedDate', today);
+                SA.setJSON('studiedWords', []);
+            }
+            const storedReviews = SA.getItem('needsReview');
+            if (storedReviews) {
+                const reviewMap = safeJsonParse(storedReviews, {});
+                words.forEach(word => {
+                    if (reviewMap[word.word]) {
+                        word.needsReview = true;
+                    }
+                });
+            }
+            updateStats();
+        }
+
+        function saveStudiedWords() {
+            SA.setJSON('studiedWords', [...studiedToday]);
+            SA.setItem('studiedDate', today);
+            updateStats();
+        }
+
+        function saveReviewStatus() {
+            const reviewMap = {};
+            words.forEach(word => {
+                reviewMap[word.word] = word.needsReview;
+            });
+            SA.setJSON('needsReview', reviewMap);
+            updateStats();
+        }
+
+        // 旧版内联脚本已移除，逻辑由 app.js / ui.js 管理
+        // 页面初始化与事件绑定由 App.init() 负责。
+    </script>
+    <!-- 追加：将提供的词条初始化到默认词库（避免重复） -->
+    <script>
+      (function(){
+        const provided = [
+          "Remote","Inhabited","Depend on","Privacy","Isolated","Supplies","Opportunity","Emergency","Trade","Nature","Local","Souvenir","Tourism","Backpacking","Impact","Environment","Infrastructure","Disaster","Resilience","Aid","Climate crisis","Evacuate","Continents","Homelessness","Trillion","Million","Thousand","live apart","Fictional","Animated","In disguise","Enemy","Soundtrack","Idol","Released","Obsessed","On Repeat","Verse","Sanctuary","Soul","Sins","Fame","Pain","Viral","Shame","Connection","Attention","Too late","Famous","Actress","Awards","Unique","Style","Bold","Performances","Perform","Worldwide","Inspire","Ballad","Iconic","Collaborate","Debut","Original","Versions","Described","Setting","Aquaintances","Realised","Restless","Admit","Keep","Just in case","I guess","Go straight to my head","Retired","Addiction","Experience","Mask","Wreck","Fall apart","Feel sorry for myself","Hold my head up high","Chained up","Ache","Addicted","Resignation","Make sense","Cut me off","Stoop so low","Screwed me over","Lively","Sunset","Freedom","Self-control","Resist","Temptation","Performance","Maintain","Discouraged","Setbacks","Thoughtful","Strategy","Supportive","Unmotivated","Task","Reason","Motivation","Curiosity","Hobby","Mood","Negativity bias","Depression","Survival","Habit","Gratitude","Constructive","Burn out","Self-compassion","Stressed","Fiber","Flavor","Greasy oil","Seasoning","Natural","Risk","Weight loss","Reduce","Medicine","Healthy","Choice","Nutrients","Binge eat","Carbonated water","Cough","Bland","Pain","Muscle","Hurt","Rest","Grow","Workout","Movement","Migraine","Headache","Cure","Lifestyle","Avoid","Trigger","Hydrate","Diet","Fall Asleep","Medications","Breathing","Heart Rate","Upsetting","White Noise","Digestion","Caffeine","Alcohol","Diuretic","Absorb","Stretch","Puffy","Miracle","Calm","Safe","Expression","Replace","Air-conditioner","Moisture","Drain","Filters","Acupuncture","Pain pills","Annoying","Messy","Sip water","Gulp water","Hang out","Close","Relationship","Empathy","Bubbles (social)","Bias","Develop","Perceives","Helpful","Crucial","Small talk","Body language","For instance","Treatment","Prescription","Volunteering","Service","Individual","Acceptance","Humour","Chemistry","Bland","Select","Pick","Decide","Billion","Society","Improve","Poverty","Criticize","Foreign","Harm","Billionaire","Current","Creative","AI Taste","A.I.","Create","Business","Education","Lead","Stand out","Company","Clear","Common","Factory","Last","Ingredients","Wholegrain","Productive","Endless","Procrastinate","Despite","Workspace","Hectic","Socket","Distracted","Advantage","Make Up For","Nowadays","Specialized","Complain","Explain","Important","Unimportant","Tariff","Free trade","Technology","Sustainable","Second-hand","Repair","Thrift shop","Stylish","Fabric","Quality","Waste","Fast fashion","Weak","Brain","Copy","Paste","Active","Worry","Protect","Tournament","Adopt","Train","Bark","Meow","Crawl","Hide","Poisonous","Respect","Culture","Ceremony","Selfie","Meditate","Simple","Chant","Cremation","Enlightenment","Stinky","Attract","Boring","Junk food","Found","Immigrants","Settle","Melting pot","Mix","Athlete","Vintage","Fast-drying","Bland",
+          "debride","bride","durian","ferment","spell","Indiana","province","Check baggage","baggage","check","Chuaylua","shrimp","seafood","expensive","alecka","bursary","appliance","Straight male perspective","male","perspective","straing male perspectve","essential","essential oil soap","monk","extrovert","soual","mandarin","desert","festival","resourceful","avocado","mental health","environment","complain","responsibility","monger","dealer","preach","shaped me as a","care giver","care guver","accompany","rent","mental age","mental","empathy","napkin","humid","miss","hot well","spring","exquisite","helmet","fry","intermittent","midnight","late","up","fresh","crisp","shower gel","Shower gel","shower","gel","detergent","soap","toothpaste","shampoo","Korean","python","meditation","Durio","Explora II","casual","sex","tissue","Vietnam","drug store","druy store","drng store","snacks","shovel"
+        ];
+        try {
+          var base = (typeof words !== 'undefined' && Array.isArray(words)) ? words : (Array.isArray(window.words) ? window.words : []);
+          var existing = new Set(base.map(function(item){ return (typeof item === 'string') ? item : ((item && item.word) || ''); }));
+          provided.forEach(function(w){
+            var name = String(w).trim();
+            if (!name) return;
+            if (!existing.has(name)) {
+              base.push({ word: name, needsReview: false });
+              existing.add(name);
+            }
+          });
+          window.words = base;
+        } catch(e) {
+          console.warn('Merge extra words failed:', e);
+        }
+      })();
+    </script>
+    
+    <!-- 引入分离的JS文件 -->
+    <!-- 移除不存在的 capacitor.js 以避免加载错误 -->
+    <script>
+      window.addEventListener('error', function(e){
+        try { console.error('GlobalError:', e.message, e.filename, e.lineno, e.colno); } catch(_){}
+      });
+      window.addEventListener('unhandledrejection', function(e){
+        try { console.error('UnhandledRejection:', e.reason); } catch(_){}
+      });
+</script>
+<script src="storage.js" charset="utf-8"></script>
+<script src="word-schema.js" charset="utf-8"></script>
+    <script src="word-enhancement-service.js" charset="utf-8"></script>
+    <script src="db.js?v=3" charset="utf-8"></script>
+    <script src="built-in-models.js" charset="utf-8"></script>
+    <!-- 多语言系统 -->
+    <script src="language-system-complete-updated.js" charset="utf-8"></script>
+    <script>
+        // 测试语言系统是否加载成功
+        console.log('语言系统脚本加载测试:');
+        console.log('LanguageSystem类型:', typeof LanguageSystem);
+        console.log('LanguageSystem对象:', LanguageSystem);
+        if (typeof LanguageSystem !== 'undefined') {
+            console.log('✅ 语言系统文件已加载');
+        } else {
+            console.log('❌ 语言系统文件未加载或加载失败');
+        }
+    </script>
+    <script src="ui.js?v=8" charset="utf-8"></script>
+    <script src="app.js?v=4" charset="utf-8"></script>
+    <script>
+      (function(){
+        try {
+          var el = document.getElementById('appVersion');
+          if (!el) return;
+          fetch('downloads/latest.json').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+            var v = j && (j.latest || j.version || '');
+            if (v) el.textContent = 'v' + String(v);
+          }).catch(function(_){});
+        } catch(_) {}
+      })();
+    </script>
+    <script>
+      // 支持从其他页面跳转自动打开“个人中心”
+      (function(){
+        try {
+          var params = new URLSearchParams(window.location.search || '');
+          if (params.get('open') === 'auth') {
+            // 等待UI初始化完成后触发首页“个人中心”按钮逻辑
+            var tryOpen = function(){
+              var btn = document.getElementById('openAuthPageMainBtn');
+              if (btn) { try { btn.click(); } catch(_) {} }
+              else { setTimeout(tryOpen, 100); }
+            };
+            setTimeout(tryOpen, 0);
+          }
+        } catch(e) {
+          try { console.warn('自动打开个人中心失败:', e); } catch(_){}
+        }
+      })();
+    </script>
+<script>(function(){if(!window.App)return;var oC=App.speakChinese;App.speakChinese=async function(t){try{var r=parseFloat((window.UI&&UI.elements&&UI.elements.speechRate&&UI.elements.speechRate.value)||"1"),a=(window.UI&&UI.elements&&UI.elements.accentZh&&UI.elements.accentZh.value)||"zh-CN",n=(t!=null&&String(t).trim())||(window.UI&&UI.state&&UI.state.frontChineseText)||"",s=String(n||"").trim();if(!s)return;var h=window.speechSynthesis;if(h&&typeof window.SpeechSynthesisUtterance!=="undefined"){var u=new SpeechSynthesisUtterance(s);u.rate=r;u.lang=a;await new Promise(function(e){try{u.onend=e;u.onerror=e;}catch(_){ }h.speak(u);});return;}}catch(_){ }return await oC.call(App,t);};var oW=App.speakWord;App.speakWord=async function(w){var c=(w!=null&&w!==undefined)?String(w):(App.words[App.currentIndex]?App.words[App.currentIndex].word:""),r=parseFloat((window.UI&&UI.elements&&UI.elements.speechRate&&UI.elements.speechRate.value)||"1"),h=window.speechSynthesis;if(h&&typeof window.SpeechSynthesisUtterance!=="undefined"){return await oW.call(App,w);}var m=Math.max(600,Math.round(800*c.length/Math.max(r,0.1)));await oW.call(App,w);await App.delay(m);};var oR=App.runLearnMode;App.runLearnMode=async function(){var m=(window.UI&&UI.elements&&UI.elements.learnMode?UI.elements.learnMode.value:"en1"),c=App.words[App.currentIndex]?App.words[App.currentIndex].word:"";if(!c)return;var s=async function(){await App.speakWord(c);await App.delay(200);},z=(window.UI&&UI.state&&UI.state.frontChineseText)||"";if(!String(z||" ").trim())z=c;switch(m){case"en1":await s();break;case"en1zh1":await s();await App.speakChinese(z);break;case"en2":await s();await s();break;case"en2zh1":await s();await App.speakChinese(z);await s();break;default:await s();}};var f=App.flipCard,n=App.nextCard;App.flipCard=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking){var w=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking)return setTimeout(w,150);try{f.call(App);}catch(_){ }};return w();}return f.call(App);};App.nextCard=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking){var w=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking)return setTimeout(w,150);try{n.call(App);}catch(_){ }};return w();}return n.call(App);};})();</script></body>
+    <!-- 多语言系统初始化 -->
+    <script>
+        // 调试：检查LanguageSystem是否可用
+        console.log('多语言系统初始化脚本开始执行...');
+        console.log('LanguageSystem可用:', typeof LanguageSystem !== 'undefined' ? '是' : '否');
+        
+        // 初始化多语言系统
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                if (typeof LanguageSystem === 'undefined') {
+                    throw new Error('LanguageSystem未定义 - 请检查语言系统文件是否正确加载');
+                }
+                
+                console.log('正在初始化多语言系统...');
+                
+                // 初始化语言系统
+                await LanguageSystem.init({
+                    defaultLanguage: 'zh-CN',
+                    enableAutoDetect: true,
+                    enableCache: true,
+                    enableAI: true
+                });
+
+                console.log('多语言系统初始化成功！');
+                
+                // 创建语言选择器
+                const languageSelector = LanguageSystem.createLanguageSelector();
+                
+                // 将语言选择器添加到设置面板
+                const settingsContent = document.querySelector('.settings-content');
+                if (settingsContent) {
+                    // 创建语言设置区域
+                    const languageSection = document.createElement('div');
+                    languageSection.style.cssText = 'border-top:1px solid #eee; padding-top:12px; margin-top:12px;';
+                    languageSection.innerHTML = `
+                        <div style="font-weight:600; margin-bottom:8px;">🌐 语言设置</div>
+                        <div id="language-selector-container"></div>
+                        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                            <button id="translateAllBtn" data-translate="true" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">🔄 AI翻译所有界面</button>
+                            <button id="exportTranslationsBtn" data-translate="true" style="background:#5856d6; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">📤 导出翻译数据</button>
+                            <button id="importTranslationsBtn" data-translate="true" style="background:#ff9f0a; color:#fff; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;">📥 导入翻译数据</button>
+                        </div>
+                        <div id="translationStatus" style="margin-top:6px; color:#555; font-size:14px; min-height:20px;"></div>
+                    `;
+                    
+                    settingsContent.appendChild(languageSection);
+                    
+                    // 添加语言选择器
+                    const container = document.getElementById('language-selector-container');
+                    if (container) {
+                        container.appendChild(languageSelector);
+                    }
+
+                    // 绑定翻译按钮事件
+                    document.getElementById('translateAllBtn').addEventListener('click', async function() {
+                        const statusEl = document.getElementById('translationStatus');
+                        const btn = this;
+                        
+                        try {
+                            btn.disabled = true;
+                            btn.textContent = '🔄 翻译中...';
+                            statusEl.textContent = '正在翻译界面元素，请稍候...';
+                            
+                            // 获取当前语言
+                            const currentLang = LanguageSystem.getCurrentLanguage();
+                            
+                            // 执行批量翻译
+                            await LanguageSystem.translateAllUIElements(currentLang, (progress) => {
+                                statusEl.textContent = `翻译进度: ${progress.percentage}% (${progress.translated}/${progress.total})`;
+                            });
+                            
+                            statusEl.textContent = '✅ 翻译完成！';
+                            btn.textContent = '🔄 AI翻译所有界面';
+                            
+                            // 3秒后清除状态信息
+                            setTimeout(() => {
+                                statusEl.textContent = '';
+                            }, 3000);
+                            
+                        } catch (error) {
+                            console.error('翻译失败:', error);
+                            statusEl.textContent = '❌ 翻译失败: ' + error.message;
+                            btn.textContent = '🔄 AI翻译所有界面';
+                        } finally {
+                            btn.disabled = false;
+                        }
+                    });
+
+                    // 导出翻译数据
+                    document.getElementById('exportTranslationsBtn').addEventListener('click', function() {
+                        try {
+                            LanguageSystem.exportTranslationData();
+                            document.getElementById('translationStatus').textContent = '📤 翻译数据已导出！';
+                            setTimeout(() => {
+                                document.getElementById('translationStatus').textContent = '';
+                            }, 3000);
+                        } catch (error) {
+                            document.getElementById('translationStatus').textContent = '❌ 导出失败: ' + error.message;
+                        }
+                    });
+
+                    // 导入翻译数据
+                    document.getElementById('importTranslationsBtn').addEventListener('click', function() {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.json';
+                        input.onchange = function(e) {
+                            const file = e.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = function(event) {
+                                    try {
+                                        const data = JSON.parse(event.target.result);
+                                        LanguageSystem.importTranslationData(data);
+                                        document.getElementById('translationStatus').textContent = '📥 翻译数据已导入！';
+                                        setTimeout(() => {
+                                            document.getElementById('translationStatus').textContent = '';
+                                        }, 3000);
+                                    } catch (error) {
+                                        document.getElementById('translationStatus').textContent = '❌ 导入失败: ' + error.message;
+                                    }
+                                };
+                                reader.readAsText(file);
+                            }
+                        };
+                        input.click();
+                    });
+                }
+
+                // 更新现有的语言按钮事件处理
+                function setupLanguageButtons() {
+                    const langButtons = {
+                        'langZhBtn': 'zh-CN',
+                        'langEnBtn': 'en-US', 
+                        'langThBtn': 'th',
+                        'langJaBtn': 'ja',
+                        'langEsBtn': 'es-ES'
+                    };
+
+                    Object.keys(langButtons).forEach(buttonId => {
+                        const button = document.getElementById(buttonId);
+                        if (button) {
+                            button.addEventListener('click', async function() {
+                                try {
+                                    await LanguageSystem.setLanguage(langButtons[buttonId]);
+                                } catch (error) {
+                                    console.error('语言切换失败:', error);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // 设置语言按钮
+                setupLanguageButtons();
+
+                // 监听语言切换事件
+                document.addEventListener('languageChanged', function(e) {
+                    console.log('语言已切换到:', e.detail.language);
+                    // 可以在这里添加额外的语言切换处理逻辑
+                });
+
+                console.log('多语言系统初始化完成');
+                
+            } catch (error) {
+                console.error('多语言系统初始化失败:', error);
+            }
+        });
+    </script>
+</html>

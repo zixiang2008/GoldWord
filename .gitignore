@@ -1,0 +1,14 @@
+.backups/
+node_modules
+
+# Local Netlify folder
+.netlify
+downloads/
+releases/
+dist/
+*.log
+.DS_Store
+android/**/build/
+android/**/outputs/
+android/app/*.keystore
+android/app/*.jks

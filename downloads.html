@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GoldWord 下载中心</title>
+  <script src="redirect-to-cdn.js"></script>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;background:#fff;color:#333}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    h1{font-size:24px;margin:0 0 12px}
+    .ver{font-size:14px;color:#666;margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .card{border:1px solid #e5e5e5;border-radius:12px;padding:14px;background:#fafafa}
+    .card h3{margin:0 0 8px;font-size:16px}
+    .card a{display:inline-block;margin-top:8px;padding:8px 10px;border-radius:8px;background:#007aff;color:#fff;text-decoration:none}
+    .note{margin-top:20px;font-size:13px;color:#555}
+    @media(max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:460px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>GoldWord 下载中心</h1>
+    <div class="ver" id="ver">当前版本：</div>
+    <div class="grid" id="grid"></div>
+    <div class="note">
+      <div style="font-weight:600;margin-bottom:6px">使用指引</div>
+      <div class="info-grid">
+        <div class="info-card"><div class="info-icon i-mac"></div><div><div style="font-weight:600;color:#007aff">macOS 安装包.app</div><div style="color:#555">解压得到 <span style="font-family:monospace">GoldWord.app</span>，拖入“应用程序”。如提示未知开发者：系统设置→隐私与安全→允许。</div></div></div>
+        <div class="info-card"><div class="info-icon i-mac"></div><div><div style="font-weight:600;color:#007aff">macOS 安装包（DMG）</div><div style="color:#555">打开 DMG，将应用拖入“应用程序”。首次运行参考上方允许步骤。</div></div></div>
+        <div class="info-card"><div class="info-icon i-android">🤖</div><div><div style="font-weight:600;color:#22c55e">Android 平板版 APK</div><div style="color:#555">在平板设备安装 APK，设置“允许未知来源”。适配大屏横屏体验。</div></div></div>
+        <div class="info-card"><div class="info-icon i-android">📱</div><div><div style="font-weight:600;color:#22c55e">Android 手机版 APK</div><div style="color:#555">手机安装 APK，授予语音权限以使用朗读功能。</div></div></div>
+        <div class="info-card"><div class="info-icon i-ipad">🧿</div><div><div style="font-weight:600;color:#5856d6">iPad 安装包（IPA）</div><div style="color:#555">企业/测试分发：Safari 安装后，设置→通用→设备管理→信任证书。</div></div></div>
+        <div class="info-card"><div class="info-icon i-win">⊞</div><div><div style="font-weight:600;color:#333">Windows 安装包</div><div style="color:#555">下载 EXE 或 ZIP。如被拦截选择“仍要运行/保留”。ZIP 解压后双击运行。</div></div></div>
+        <div class="info-card"><div class="info-icon i-mac"></div><div><div style="font-weight:600;color:#8e8e93">macOS 安装包（ZIP）</div><div style="color:#555">解压得到应用或容器，拖入“应用程序”。适合无法挂载 DMG 的环境。</div></div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+  (async function(){
+    const verEl=document.getElementById('ver');
+    const grid=document.getElementById('grid');
+    function fmtSize(bytes){ if(!bytes && bytes!==0) return ''; const u=['B','KB','MB','GB']; let i=0; let v=Number(bytes); while(v>=1024&&i<u.length-1){ v/=1024; i++; } return `${v.toFixed(i?2:0)} ${u[i]}`; }
+    function fmtDate(s){ try{ const d=new Date(s); if(isNaN(d.getTime())) return ''; const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); const hh=String(d.getHours()).padStart(2,'0'); const mm=String(d.getMinutes()).padStart(2,'0'); return `${y}-${m}-${da} ${hh}:${mm}`; }catch(_){ return ''; } }
+    function moreCard(){
+      const c=document.createElement('div'); c.className='card';
+      const h=document.createElement('h3'); h.textContent='快速反馈'; c.appendChild(h);
+      const p=document.createElement('div'); p.textContent='提交问题与建议'; c.appendChild(p);
+      const a=document.createElement('a'); a.href='https://github.com/zixiang2008/GoldWord/issues'; a.textContent='打开 Issues'; a.target='_blank'; c.appendChild(a);
+      grid.appendChild(c);
+    }
+    async function card(title, name, url, ver, size, mtime){
+      const c=document.createElement('div');c.className='card';
+      const h=document.createElement('h3');h.textContent=title; c.appendChild(h);
+      if(name&&url){
+        const p=document.createElement('div');
+        let label=name;
+        if (/\.app\.zip$/i.test(name)) { label = 'macOS 安装包.app'; }
+        p.textContent=label; c.appendChild(p);
+        const meta=document.createElement('div'); meta.style.fontSize='12px'; meta.style.color='#666'; meta.textContent=`文件大小：${size!=null?fmtSize(size):'—'} ｜ 更新时间：${mtime?fmtDate(mtime):'—'}`; c.appendChild(meta);
+        const a=document.createElement('a'); a.href=url; a.textContent='下载'; c.appendChild(a);
+        const gh=document.createElement('a'); gh.href=`https://github.com/zixiang2008/GoldWord/releases/download/v${ver}/${encodeURIComponent(name)}`; gh.textContent='从 GitHub 下载'; gh.style.marginLeft='8px'; gh.target='_blank'; c.appendChild(gh);
+      } else {
+        const p=document.createElement('div'); p.textContent='暂未提供该平台的下载包'; c.appendChild(p);
+      }
+      grid.appendChild(c);
+    }
+    try{
+      const latest = await fetch('downloads/latest.json').then(r=>r.json());
+      const ver = latest.latest;
+      const info = await fetch('downloads/'+ver+'/index.json').then(r=>r.json());
+      verEl.textContent = `当前版本：${info.version}`;
+      const items = Array.isArray(info.items) ? info.items : [];
+      const get=(t)=> items.find(x=>x.type===t);
+      const phone=get('android-phone');
+      const pad=get('android-pad');
+      const wins=items.filter(x=>x.type==='win');
+      const winZip = wins.find(x=>/\.zip$/i.test(x.name)) || wins[0] || null;
+      const macs=items.filter(x=>x.type==='mac');
+      const macApp = macs.find(x=>/\.app\.zip$/i.test(x.name)) || null;
+      const macDmg = macs.find(x=>/\.dmg$/i.test(x.name)) || null;
+      const macZip = macs.find(x=>/\.zip$/i.test(x.name) && !/\.app\.zip$/i.test(x.name)) || null;
+      const ipad=get('ipad');
+      if (macApp) await card('macOS 安装包.app', macApp.name, macApp.url, ver, macApp.size, macApp.mtime);
+      if (macDmg) await card('macOS 安装包（DMG）', macDmg.name, macDmg.url, ver, macDmg.size, macDmg.mtime);
+      await card('Android 平板版 APK', pad?.name, pad?.url, ver, pad?.size, pad?.mtime);
+      await card('iPad 安装包（IPA）', ipad?.name, ipad?.url, ver, ipad?.size, ipad?.mtime);
+      await card('Windows 安装包', winZip?.name, winZip?.url, ver, winZip?.size, winZip?.mtime);
+      await card('Android 手机版 APK', phone?.name, phone?.url, ver, phone?.size, phone?.mtime);
+      if (macZip) await card('macOS 安装包（ZIP）', macZip.name, macZip.url, ver, macZip.size, macZip.mtime);
+      moreCard();
+    }catch(e){ verEl.textContent='加载失败'; }
+  })()
+  </script>
+</body>
+</html>

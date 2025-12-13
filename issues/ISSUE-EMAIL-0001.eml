@@ -1,0 +1,37 @@
+From: noreply@goldword.app
+To: eng-team@goldword.app
+Cc: qa-team@goldword.app, ops@goldword.app, product@goldword.app
+Subject: [TRACK-ISSUE-0001] 下载页JSON解析错误导致入口不可用（紧急）
+Date: Tue, 25 Nov 2025 09:25:00 +0800
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+问题概述（<=50字）:
+下载页依赖的cdn-links-generated.json返回HTML导致JSON解析失败，入口不可用。
+
+Issue链接/编号:
+TRACK-ISSUE-0001 -> 存储于仓库 issues/ISSUE-REPORT-0001.md
+
+紧急程度:
+立即处理（Blocker/Major影响下载入口）
+
+期望响应时间:
+2小时内初步回复，4小时内给出修复计划，24小时内上线修复。
+
+干系人抄送（角色/部门）:
+- 后端/云同步: ops@goldword.app
+- 前端: eng-team@goldword.app
+- QA: qa-team@goldword.app
+- 产品: product@goldword.app
+
+分类标签:
+Bug
+
+核心内容:
+- 重现步骤与触发条件详见 issues/ISSUE-REPORT-0001.md
+- 预期与实际、环境信息、日志与附件均已归档（build_android.log, xcodebuild.log, apk_signature.txt, service_log.txt）
+- 测试链接: http://localhost:8080/app-cdn.html?src=cdn&auth=token-demo
+- 当前版本: 见 package.json，同步 Android versionName；Git: c942d81
+
+请按紧急程度处理，并在期望响应时间内确认计划与风险。

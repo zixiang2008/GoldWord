@@ -1,0 +1,83 @@
+{
+  "name": "goldword-v1",
+  "version": "1.0.5",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "gen:downloads": "node scripts/generate-downloads-index.js",
+    "gen:downloads:103": "node scripts/generate-downloads-index.js 1.0.3",
+    "dev:electron": "electron .",
+    "build:mac": "electron-builder --mac dmg zip",
+    "build:win": "electron-builder --win zip",
+    "build:win:exe": "electron-builder --win portable",
+    "dist:copy": "node scripts/copy-dist-to-downloads.js",
+    "web:build": "node scripts/build-web.js",
+    "cap:install": "npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/ios@6",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy",
+    "release:103": "node scripts/publish-release.js 1.0.3",
+    "release:notes:103": "node scripts/update-release-notes.js 1.0.3",
+    "rollback:create": "node scripts/version-backup.js",
+    "rollback:auto": "node scripts/auto-rollback-daemon.js",
+    "rollback:auto:once": "node scripts/auto-rollback-daemon.js --once",
+    "rollback:feature": "node scripts/feature-rollback.js",
+    "postversion": "node scripts/version-backup.js && node scripts/generate-release-report.js",
+    "android:build:release": "cd android && ./gradlew clean assembleRelease",
+    "android:verify:apk": "node scripts/signing-verify.js downloads/1.0.5/goldword-android-pad-1.0.5.apk",
+    "android:audit": "node scripts/signing-audit.js downloads/1.0.5/goldword-android-pad-1.0.5.apk",
+    "android:export:pepk": "node scripts/export-pepk.js",
+    "android:build:aab": "cd android && ANDROID_KEYSTORE_PATH=temp-release.keystore ANDROID_KEYSTORE_STORE_PASSWORD=$ANDROID_KEYSTORE_STORE_PASSWORD ANDROID_KEYSTORE_ALIAS=$ANDROID_KEYSTORE_ALIAS ANDROID_KEYSTORE_KEY_PASSWORD=$ANDROID_KEYSTORE_KEY_PASSWORD ./gradlew bundleRelease",
+    "android:diag": "node scripts/adb-diagnostics.js downloads/1.0.5/goldword-android-pad-1.0.5.apk"
+  },
+  "build": {
+    "appId": "com.goldword.app",
+    "productName": "GoldWord",
+    "files": [
+      "index.html",
+      "app.js",
+      "ui.js",
+      "db.js",
+      "storage.js",
+      "word-enhancement-service.js",
+      "word-schema.js",
+      "built-in-models.js",
+      "eight-dimensional-memory.css",
+      "eight-dimensional-memory.js",
+      "manifest.json",
+      "service-worker.js",
+      "icons/**",
+      "downloads/**",
+      "electron/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "icons/icon-512x512.png"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "zip"
+      ],
+      "icon": "icons/icon-512x512.png"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "netlify-cli": "^23.11.1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/ios": "^6.2.1"
+  }
+}

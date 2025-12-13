@@ -1,0 +1,13 @@
+{
+  "name": "GoldWord",
+  "bundleId": "com.goldword.app",
+  "version": "1.0.6",
+  "minimumSystemVersion": "10.15",
+  "architectures": ["x86_64", "arm64"],
+  "build": {
+    "date": "2025-11-29",
+    "toolchain": "clang + lipo",
+    "icons": "AppIcon.icns",
+    "notarization": "optional via notarytool"
+  }
+}

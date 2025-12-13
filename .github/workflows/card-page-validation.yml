@@ -1,0 +1,104 @@
+name: Card Page Validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - app-cdn.html
+      - cdn-links-generated.json
+      - scripts/**
+      - cloud-sync-server.js
+      - cloud-storage-sync.js
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    env:
+      NODE_VERSION: '20'
+      GW_AUTH_TOKEN: 'ci-validation-token'
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_ACCESS_KEY_ID }}
+      CLOUDFLARE_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_SECRET_ACCESS_KEY }}
+      CLOUDFLARE_BUCKET_NAME: ${{ secrets.CLOUDFLARE_BUCKET_NAME }}
+      CLOUDFLARE_ENDPOINT: ${{ secrets.CLOUDFLARE_ENDPOINT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Ensure install dirs
+        run: node scripts/ensure-install-dirs.js || true
+
+      - name: Copy dist outputs to downloads and generate index
+        run: node scripts/copy-dist-to-downloads.js || true
+
+      - name: Start local server
+        run: |
+          nohup node cloud-sync-server.js > server_stdout.log 2> server_stderr.log &
+          sleep 2
+
+      - name: Health check
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | tee health_code.txt
+
+      - name: Run card page test
+        run: node scripts/test-card-page.js
+
+      - name: Verify card page test results
+        id: verify
+        run: |
+          node -e '
+          const fs=require("fs");
+          const rep=JSON.parse(fs.readFileSync("card_page_test_report.json","utf8"));
+          const ok = rep && rep.health && rep.health.code===200 && rep.page && rep.page.code===200 && rep.index && rep.index.code===200;
+          console.log("OK:", ok);
+          fs.writeFileSync("validation_ok.txt", String(ok));
+          if(!ok){ process.exit(1); }
+          '
+
+      - name: Optional Cloudflare token verification
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: node scripts/verify-cloudflare-token.js || true
+
+      - name: Run cloud sync (optional, continues on error)
+        run: node cloud-storage-sync.js || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: card-page-validation
+          path: |
+            card_page_test_report.json
+            server_stdout.log
+            server_stderr.log
+            cdn-links-generated.json
+            install-dirs-report.json
+            cloud-sync-report.json
+            cloudflare-token-verification.json
+
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const title = '[CARD-PAGE] Validation failed on CI';
+            let body = 'Card page validation failed.\n\n';
+            try { body += 'Health code: '+fs.readFileSync('health_code.txt','utf8')+'\n'; } catch {}
+            try { const rep = JSON.parse(fs.readFileSync('card_page_test_report.json','utf8')); body += 'Report:\n```\n'+JSON.stringify(rep,null,2)+'\n```\n'; } catch {}
+            body += '\nArtifacts: see workflow run artifacts.';
+            const issue = await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['Bug','Validation','CI'] });
+            core.setOutput('issue', issue.data.html_url);
+

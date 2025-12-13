@@ -1,0 +1,77 @@
+{
+  "appName": "GoldWord",
+  "appSlogan": "每一个记住的单词，都是一枚金币",
+  "languages": {
+    "zh-CN": { "name": "简体中文", "flag": "🇨🇳", "rtl": false },
+    "en-US": { "name": "English (US)", "flag": "🇺🇸", "rtl": false },
+    "en-GB": { "name": "English (UK)", "flag": "🇬🇧", "rtl": false }
+  },
+  "translations": {
+    "zh-CN": {
+      "app": {
+        "title": "GoldWord — 每一个记住的单词，都是一枚金币",
+        "status": { "checking": "检查中...", "ready": "准备就绪", "working": "工作中", "error": "错误", "disabled": "已禁用" },
+        "languagePreview": "语言预览"
+      },
+      "buttons": {
+        "autoPlay": "自动播放",
+        "flipCard": "翻转卡片",
+        "remember": "记得",
+        "speakWord": "读单词",
+        "dontRemember": "不记得",
+        "addNewWord": "要记住",
+        "personalCenter": "个人中心",
+        "saveSettings": "保存设置",
+        "testSettings": "测试设置",
+        "gptEnhancement": "GPT增强",
+        "checkStatus": "检查服务状态",
+        "exportVisit": "导出访问记录"
+      },
+      "sections": { "voiceTest": "语音测试", "authTitle": "用户注册 / 登录" }
+    },
+    "en-US": {
+      "app": {
+        "title": "GoldWord — Every remembered word is a coin",
+        "status": { "checking": "Checking...", "ready": "Ready", "working": "Working", "error": "Error", "disabled": "Disabled" },
+        "languagePreview": "Language Preview"
+      },
+      "buttons": {
+        "autoPlay": "Auto Play",
+        "flipCard": "Flip Card",
+        "remember": "Remember",
+        "speakWord": "Speak Word",
+        "dontRemember": "Don't Remember",
+        "addNewWord": "Add New Word",
+        "personalCenter": "Personal Center",
+        "saveSettings": "Save Settings",
+        "testSettings": "Test Settings",
+        "gptEnhancement": "GPT Enhance",
+        "checkStatus": "Check Status",
+        "exportVisit": "Export Visits"
+      },
+      "sections": { "voiceTest": "Voice Test", "authTitle": "User Register / Login" }
+    },
+    "en-GB": {
+      "app": {
+        "title": "GoldWord — Every remembered word is a coin",
+        "status": { "checking": "Checking...", "ready": "Ready", "working": "Working", "error": "Error", "disabled": "Disabled" },
+        "languagePreview": "Language Preview"
+      },
+      "buttons": {
+        "autoPlay": "Auto Play",
+        "flipCard": "Flip Card",
+        "remember": "Remember",
+        "speakWord": "Speak Word",
+        "dontRemember": "Don't Remember",
+        "addNewWord": "Add New Word",
+        "personalCenter": "Personal Centre",
+        "saveSettings": "Save Settings",
+        "testSettings": "Test Settings",
+        "gptEnhancement": "GPT Enhance",
+        "checkStatus": "Check Status",
+        "exportVisit": "Export Visits"
+      },
+      "sections": { "voiceTest": "Voice Test", "authTitle": "User Register / Login" }
+    }
+  }
+}

@@ -1,0 +1,352 @@
+/* 八维记忆卡片样式 */
+
+.eight-dimensional-memory {
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.memory-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(139, 92, 62, 0.2);
+}
+
+.memory-header h3 {
+    font-size: 2em;
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.basic-info {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.basic-info .phonetics {
+    background: #3498db;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.basic-info .pos {
+    background: #e74c3c;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.memory-blocks {
+    margin-bottom: 20px;
+}
+
+.memory-block {
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.memory-block:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.block-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease;
+}
+
+.block-header:hover {
+    background: linear-gradient(90deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.block-header .icon {
+    font-size: 1.2em;
+    margin-right: 10px;
+}
+
+.block-header .title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.block-header .toggle-icon {
+    font-size: 0.8em;
+    transition: transform 0.3s ease;
+}
+
+.memory-block.revealed .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.block-content {
+    padding: 16px;
+    background: #fafbfc;
+    border-top: 1px solid #e1e8ed;
+}
+
+.content-text {
+    color: #2c3e50;
+    line-height: 1.6;
+    font-size: 0.95em;
+}
+
+.example-item {
+    margin-bottom: 12px;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+}
+
+.example-item .en {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.example-item .zh {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.load-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.load-btn:hover {
+    background: linear-gradient(45deg, #5a6fd8, #6a4190);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.synonyms-list, .antonyms-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.synonym-item, .antonym-item {
+    background: #e8f4fd;
+    color: #2980b9;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    border: 1px solid #bde0ff;
+}
+
+.antonym-item {
+    background: #ffeaea;
+    color: #c0392b;
+    border-color: #ffcccb;
+}
+
+.loading {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 10px;
+}
+
+.no-data, .error {
+    text-align: center;
+    color: #95a5a6;
+    font-size: 0.9em;
+    padding: 10px;
+}
+
+.error {
+    color: #e74c3c;
+}
+
+/* 记忆程度按钮 */
+.memory-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.memory-level-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.memory-level-btn.easy {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.memory-level-btn.easy:hover {
+    background: linear-gradient(45deg, #27ae60, #229954);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.4);
+}
+
+.memory-level-btn.medium {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+    color: white;
+}
+
+.memory-level-btn.medium:hover {
+    background: linear-gradient(45deg, #e67e22, #d35400);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(243, 156, 18, 0.4);
+}
+
+.memory-level-btn.hard {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.memory-level-btn.hard:hover {
+    background: linear-gradient(45deg, #c0392b, #a93226);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .eight-dimensional-memory {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .memory-header h3 {
+        font-size: 1.5em;
+    }
+    
+    .basic-info {
+        gap: 10px;
+    }
+    
+    .memory-actions {
+        flex-direction: column;
+    }
+    
+    .memory-level-btn {
+        min-width: auto;
+    }
+    
+    .block-header {
+        padding: 10px 12px;
+    }
+    
+    .block-content {
+        padding: 12px;
+    }
+}
+
+/* 滚动条样式 */
+.eight-dimensional-memory::-webkit-scrollbar {
+    width: 6px;
+}
+
+.eight-dimensional-memory::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.eight-dimensional-memory::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 62, 0.5);
+    border-radius: 3px;
+}
+
+.eight-dimensional-memory::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 62, 0.7);
+}
+
+/* 动画效果 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.memory-block.revealed .block-content {
+    animation: slideIn 0.3s ease;
+}
+
+/* 正面卡片样式优化 */
+.flashcard-front .phonetics {
+    color: #3498db;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.flashcard-front .pos {
+    color: #e74c3c;
+    font-weight: 600;
+    background: rgba(231, 76, 60, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+/* Speak avatar button: purple theme, hover enlarge */
+.avatar-speak {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid #b39ddb; /* light purple border */
+    background: #ede7f6;       /* lavender background */
+    color: #5e35b1;            /* deep purple text */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 16px;           /* emoji size */
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+.avatar-speak:hover {
+    transform: scale(1.12);
+    box-shadow: 0 2px 6px rgba(93,61,166,0.2);
+    background: #e8e0f5;
+    border-color: #9575cd;
+}
+.avatar-speak:active {
+    transform: scale(1.05);
+}

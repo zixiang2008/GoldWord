@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GoldWord 下载中心 - 即用即下载</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .container{background:rgba(255,255,255,0.95);border-radius:20px;padding:40px;max-width:600px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.1);backdrop-filter:blur(10px)}
+    h1{color:#333;font-size:32px;margin-bottom:10px;font-weight:700}
+    .subtitle{color:#666;font-size:18px;margin-bottom:40px}
+    .download-section{background:#f8fafc;border-radius:15px;padding:30px;margin-bottom:30px}
+    .platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:30px}
+    .platform-btn{background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:20px;cursor:pointer;transition:all 0.3s ease;text-decoration:none;display:block}
+    .platform-btn:hover{border-color:#667eea;transform:translateY(-3px);box-shadow:0 10px 25px rgba(102,126,234,0.2)}
+    .platform-icon{font-size:48px;margin-bottom:15px;display:block}
+    .platform-name{color:#1e293b;font-size:18px;font-weight:600;margin-bottom:8px}
+    .platform-desc{color:#64748b;font-size:14px;line-height:1.5}
+    .quick-download{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:12px;padding:18px 32px;font-size:18px;font-weight:600;cursor:pointer;transition:all 0.3s ease;margin:10px;display:inline-block;text-decoration:none}
+    .quick-download:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,0.4)}
+    .version-info{background:#eff6ff;border-radius:10px;padding:20px;margin-top:30px}
+    .version-text{color:#1e40af;font-size:14px;margin:0}
+    .all-versions{color:#64748b;font-size:14px;margin-top:15px}
+    .all-versions a{color:#3b82f6;text-decoration:none;font-weight:500}
+    .all-versions a:hover{text-decoration:underline}
+    @media (max-width: 600px) {
+      .container{padding:30px 20px}
+      h1{font-size:28px}
+      .platform-grid{grid-template-columns:1fr}
+      .quick-download{width:100%;margin:10px 0}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🪙 GoldWord</h1>
+    <p class="subtitle">每一个记住的单词，都是一枚金币</p>
+    
+    <div class="download-section">
+      <h2 style="color:#1e293b;font-size:24px;margin-bottom:25px;font-weight:600">选择您的设备</h2>
+      
+      <div class="platform-grid">
+        <a href="https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-mac-1.0.3.dmg" class="platform-btn" target="_blank">
+          <span class="platform-icon">🍎</span>
+          <div class="platform-name">macOS</div>
+          <div class="platform-desc">DMG安装包<br>双击安装，简单快捷</div>
+        </a>
+        
+        <a href="https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-win-setup-1.0.3.exe" class="platform-btn" target="_blank">
+          <span class="platform-icon">🪟</span>
+          <div class="platform-name">Windows</div>
+          <div class="platform-desc">EXE安装程序<br>一键安装，自动配置</div>
+        </a>
+        
+        <a href="https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-android-phone-1.0.3.apk" class="platform-btn" target="_blank">
+          <span class="platform-icon">🤖</span>
+          <div class="platform-name">Android</div>
+          <div class="platform-desc">APK安装包<br>手机版，随时随地</div>
+        </a>
+        
+        <a href="https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-ipad-1.0.3.ipa" class="platform-btn" target="_blank">
+          <span class="platform-icon">🍏</span>
+          <div class="platform-name">iPhone/iPad</div>
+          <div class="platform-desc">IPA安装包<br>iOS原生体验</div>
+        </a>
+      </div>
+      
+      <a href="https://github.com/zixiang2008/GoldWord/releases" class="quick-download" target="_blank">
+        📦 查看所有版本
+      </a>
+    </div>
+    
+    <div class="version-info">
+      <p class="version-text">当前版本：1.0.3 | 更新时间：2025年11月 | 基于GitHub全球分发</p>
+    </div>
+    
+    <div class="all-versions">
+      需要其他版本？<a href="https://github.com/zixiang2008/GoldWord/releases" target="_blank">访问GitHub Releases</a>
+    </div>
+  </div>
+
+  <script>
+    // 添加一些简单的交互效果
+    document.querySelectorAll('.platform-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-3px) scale(1.02)';
+      });
+      
+      btn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+      });
+      
+      // 添加点击反馈
+      btn.addEventListener('click', function() {
+        this.style.transform = 'translateY(-1px) scale(0.98)';
+        setTimeout(() => {
+          this.style.transform = 'translateY(-3px) scale(1)';
+        }, 100);
+      });
+    });
+
+    // 添加页面加载动画
+    window.addEventListener('load', function() {
+      document.querySelector('.container').style.opacity = '0';
+      document.querySelector('.container').style.transform = 'translateY(20px)';
+      document.querySelector('.container').style.transition = 'all 0.6s ease';
+      
+      setTimeout(() => {
+        document.querySelector('.container').style.opacity = '1';
+        document.querySelector('.container').style.transform = 'translateY(0)';
+      }, 100);
+    });
+
+    // 简单的下载统计（可选）
+    function trackDownload(platform) {
+      console.log(`下载统计: ${platform}`);
+      // 这里可以添加简单的统计代码
+    }
+
+    // 为下载链接添加统计
+    document.querySelectorAll('.platform-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const platformName = this.querySelector('.platform-name').textContent;
+        trackDownload(platformName);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GoldWord</string>
+    <string name="title_activity_main">GoldWord</string>
+    <string name="package_name">com.goldword.app</string>
+    <string name="custom_url_scheme">com.goldword.app</string>
+</resources>

@@ -1,0 +1,162 @@
+{
+  "basicWords": {
+    "hello": {
+      "phonetic": "/həˈloʊ/",
+      "partOfSpeech": "interj.",
+      "definition": "Used as a greeting or to begin a phone conversation",
+      "chineseMeaning": "你好"
+    },
+    "world": {
+      "phonetic": "/wɜːrld/",
+      "partOfSpeech": "n.",
+      "definition": "The earth, together with all of its countries and peoples",
+      "chineseMeaning": "世界"
+    },
+    "study": {
+      "phonetic": "/ˈstʌdi/",
+      "partOfSpeech": "v./n.",
+      "definition": "The activity of learning about something",
+      "chineseMeaning": "学习"
+    },
+    "memory": {
+      "phonetic": "/ˈmeməri/",
+      "partOfSpeech": "n.",
+      "definition": "The ability to remember information, experiences, and people",
+      "chineseMeaning": "记忆"
+    },
+    "language": {
+      "phonetic": "/ˈlæŋɡwɪdʒ/",
+      "partOfSpeech": "n.",
+      "definition": "A system of communication used by a particular country or community",
+      "chineseMeaning": "语言"
+    }
+    ,
+    "experience": {
+      "phonetic": "/ɪkˈspɪriəns/",
+      "partOfSpeech": "n./v.",
+      "definition": "Knowledge or skill gained by doing and seeing things",
+      "chineseMeaning": "经验；经历"
+    },
+    "mask": {
+      "phonetic": "/mæsk/",
+      "partOfSpeech": "n./v.",
+      "definition": "A covering for the face; to hide or disguise",
+      "chineseMeaning": "口罩；面具；掩饰"
+    },
+    "wreck": {
+      "phonetic": "/rek/",
+      "partOfSpeech": "v./n.",
+      "definition": "To destroy or damage something badly; a destroyed object",
+      "chineseMeaning": "毁坏；失事；残骸"
+    },
+    "fall apart": {
+      "phonetic": "/fɔːl əˈpɑːrt/",
+      "partOfSpeech": "phr.",
+      "definition": "To break into pieces or fail completely",
+      "chineseMeaning": "分崩离析；崩溃"
+    },
+    "feel sorry for myself": {
+      "phonetic": "/fiːl ˈsɒri fər maɪˈself/",
+      "partOfSpeech": "phr.",
+      "definition": "To feel self-pity about one's situation",
+      "chineseMeaning": "自怜；为自己感到难过"
+    },
+    "hold my head up high": {
+      "phonetic": "/hoʊld maɪ hed ʌp haɪ/",
+      "partOfSpeech": "phr.",
+      "definition": "To remain confident and proud despite difficulties",
+      "chineseMeaning": "昂首挺胸；抬头挺胸"
+    },
+    "chained up": {
+      "phonetic": "/tʃeɪnd ʌp/",
+      "partOfSpeech": "phr.",
+      "definition": "Restrained or tied with chains",
+      "chineseMeaning": "被锁链捆住；受束缚"
+    },
+    "ache": {
+      "phonetic": "/eɪk/",
+      "partOfSpeech": "v./n.",
+      "definition": "To feel a continuous dull pain",
+      "chineseMeaning": "隐痛；疼痛"
+    },
+    "addicted": {
+      "phonetic": "/əˈdɪktɪd/",
+      "partOfSpeech": "adj.",
+      "definition": "Unable to stop doing or using something",
+      "chineseMeaning": "上瘾的；沉迷的"
+    },
+    "resignation": {
+      "phonetic": "/ˌrezɪɡˈneɪʃn/",
+      "partOfSpeech": "n.",
+      "definition": "The act of resigning; acceptance of something undesirable",
+      "chineseMeaning": "辞职；听从；认命"
+    }
+  },
+  "collocations": {
+    "study": [
+      "study hard",
+      "study abroad",
+      "case study"
+    ],
+    "memory": [
+      "good memory",
+      "memory loss",
+      "in memory of"
+    ],
+    "language": [
+      "native language",
+      "foreign language",
+      "body language"
+    ],
+    "experience": [
+      "gain experience：获得经验",
+      "first-hand experience：第一手经验"
+    ],
+    "mask": [
+      "wear a mask：戴口罩",
+      "mask the smell：掩盖气味"
+    ],
+    "wreck": [
+      "car wreck：车祸",
+      "emotional wreck：情绪崩溃的人"
+    ],
+    "fall apart": [
+      "fall apart at the seams：分崩离析",
+      "watch it fall apart：看着它崩溃"
+    ],
+    "feel sorry for myself": [
+      "stop feeling sorry for myself：不再自怜"
+    ],
+    "hold my head up high": [
+      "hold my head up high：昂首挺胸"
+    ],
+    "chained up": [
+      "be chained up：被锁链捆住"
+    ],
+    "ache": [
+      "stomach ache：胃痛",
+      "back ache：背痛"
+    ],
+    "addicted": [
+      "be addicted to：沉迷于；对……上瘾"
+    ],
+    "resignation": [
+      "hand in resignation：提交辞呈",
+      "with resignation：无奈地；认命地"
+    ]
+  },
+  "etymology": {
+    "study": {
+      "memoryTip": "来自拉丁语studium，意为热情、努力",
+      "root": "stud- (热情) + -y"
+    },
+    "memory": {
+      "memoryTip": "来自拉丁语memoria，记住的能力",
+      "root": "memor- (记住) + -y"
+    },
+    "language": {
+      "memoryTip": "来自拉丁语lingua，舌头，因为语言通过舌头表达",
+      "root": "langu- (舌头) + -age"
+    }
+  }
+}

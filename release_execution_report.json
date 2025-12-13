@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "tag": "V1.05",
+    "version": "1.0.5",
+    "utc": "20251126_0229",
+    "prefix": "goldword_V1.05_20251126_0229"
+  },
+  "git": {
+    "headSha": "c942d81347e46731565d436ec356c4de9cbe6550",
+    "statusLines": 51,
+    "submodules": false
+  },
+  "tag": {
+    "created": true
+  },
+  "branch": {
+    "name": "release/V1.05",
+    "created": true,
+    "protected": false
+  },
+  "snapshot": {
+    "timestamp": "2025-11-26T02:29:20.684Z",
+    "tag": "V1.05",
+    "version": "1.0.5",
+    "headSha": "c942d81347e46731565d436ec356c4de9cbe6550",
+    "statusSummary": 51,
+    "hasSubmodules": false,
+    "baselineUrl": "http://localhost:8080/www/index.html",
+    "testReportSummary": {
+      "health": 404,
+      "page": 200,
+      "index": 200
+    }
+  },
+  "artifacts": {
+    "bundle": true,
+    "projectZip": false,
+    "deployZip": false
+  },
+  "docs": {
+    "apiHtml": true,
+    "apiPdf": false,
+    "installHtml": true,
+    "installPdf": false
+  },
+  "security": {
+    "clam": "skipped"
+  },
+  "audit": {},
+  "performance": {
+    "app_cdn": "time_total=0.001432",
+    "index": "time_total=0.001045"
+  }
+}

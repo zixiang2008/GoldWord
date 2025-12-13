@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-11-26T03:34:55.928Z",
+  "apk": "goldword-android-pad-1.0.5.apk",
+  "sdk": {
+    "minSdkVersion": 22,
+    "targetSdkVersion": 34
+  },
+  "abi": {
+    "arm64": false,
+    "arm": false,
+    "x86": false,
+    "x86_64": false
+  },
+  "permissions": [
+    "android.permission.INTERNET"
+  ],
+  "highRisk": []
+}

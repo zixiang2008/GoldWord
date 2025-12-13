@@ -1,0 +1,125 @@
+{
+  "timestamp": "2025-11-21T19:42:53.300Z",
+  "duration": 7,
+  "fileValidation": {
+    "valid": true,
+    "missingFiles": [],
+    "fileStats": {
+      "app-cdn.html": {
+        "size": 11405,
+        "modified": "2025-11-21T19:17:54.653Z",
+        "exists": true
+      },
+      "_redirects": {
+        "size": 1178,
+        "modified": "2025-11-21T18:37:02.057Z",
+        "exists": true
+      },
+      "netlify.toml": {
+        "size": 2629,
+        "modified": "2025-11-21T18:37:40.268Z",
+        "exists": true
+      },
+      "cdn-links-generated.json": {
+        "size": 3958,
+        "modified": "2025-11-21T18:26:06.631Z",
+        "exists": true
+      },
+      "cdn-mapping-config.json": {
+        "size": 6869,
+        "modified": "2025-11-21T18:09:24.571Z",
+        "exists": true
+      },
+      "404.html": {
+        "size": 7026,
+        "modified": "2025-11-21T19:40:59.163Z",
+        "exists": true
+      },
+      "index.html": {
+        "size": 119916,
+        "modified": "2025-11-21T17:54:50.933Z",
+        "exists": true
+      }
+    },
+    "totalFiles": 7,
+    "foundFiles": 7
+  },
+  "redirectValidation": {
+    "valid": true,
+    "hasAppCdnRule": true,
+    "hasDownloadsRedirect": true,
+    "content": "# Netlify重定向配置\n# 用于解决404错误和优化URL结构\n\n# 下载页面重定向\n/app-cdn.html /app-cdn.html 200\n/downloads-cdn.html /app-cdn.html 301\n/downloads.html /app-cdn.html 301\n/download /app-cdn.html 301\n\n# 版本重定向 (保持向后兼容)\n/v1.0.3 /app-cdn.html 301\n/v1.0.2 /app-cdn.html 301\n/latest /app-cdn.html 301\n\n# CDN文件代理 (需要Worker部署后启用)\n# 这些规则将在Worker部署完成后启用\n# /1.0.2/* https://goldword-cdn-worker.caishen.us.kg/1.0.2/:splat 200\n# /1.0.3/* https://goldword-cdn-worker.caishen.us.kg/1.0.3/:splat 200\n\n# 临时重定向到GitHub (在Worker部署前使用)\n/1.0.2/* https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/:splat 302\n/1.0.3/* https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/:splat 302\n\n# API端点 (预留)\n/api/download/* /.netlify/functions/download-proxy 200\n/api/stats /.netlify/functions/download-stats 200\n\n# 静态资源\n/assets/* /assets/:splat 200\n/css/* /css/:splat 200\n/js/* /js/:splat 200\n/images/* /images/:splat 200\n\n# 健康检查\n/health /health.json 200\n/status /status.json 200\n\n# 错误页面\n/404.html /404.html 404\n/500.html /500.html 500"
+  },
+  "netlifyValidation": {
+    "valid": true,
+    "hasRedirects": true,
+    "hasHeaders": true,
+    "content": "[build]\n  publish = \".\"\n  command = \"echo 'Build completed'\"\n  \n# 环境变量\n[build.environment]\n  NODE_VERSION = \"18\"\n  NPM_VERSION = \"9\"\n  \n# 重定向规则\n[[redirects]]\n  from = \"/app-cdn.html\"\n  to = \"/app-cdn.html\"\n  status = 200\n  \n[[redirects]]\n  from = \"/downloads-cdn.html\"\n  to = \"/app-cdn.html\"\n  status = 301\n  \n[[redirects]]\n  from = \"/downloads.html\"\n  to = \"/app-cdn.html\"\n  status = 301\n  \n[[redirects]]\n  from = \"/download\"\n  to = \"/app-cdn.html\"\n  status = 301\n  \n[[redirects]]\n  from = \"/v1.0.3\"\n  to = \"/app-cdn.html\"\n  status = 301\n  \n[[redirects]]\n  from = \"/v1.0.2\"\n  to = \"/app-cdn.html\"\n  status = 301\n  \n[[redirects]]\n  from = \"/latest\"\n  to = \"/app-cdn.html\"\n  status = 301\n  \n# 文件下载重定向 (临时使用GitHub，部署Worker后更改)\n[[redirects]]\n  from = \"/1.0.2/*\"\n  to = \"https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/:splat\"\n  status = 302\n  \n[[redirects]]\n  from = \"/1.0.3/*\"\n  to = \"https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/:splat\"\n  status = 302\n  \n# API端点 (预留)\n[[redirects]]\n  from = \"/api/download/*\"\n  to = \"/.netlify/functions/download-proxy\"\n  status = 200\n  \n[[redirects]]\n  from = \"/api/stats\"\n  to = \"/.netlify/functions/download-stats\"\n  status = 200\n  \n# 静态资源\n[[redirects]]\n  from = \"/assets/*\"\n  to = \"/assets/:splat\"\n  status = 200\n  \n[[redirects]]\n  from = \"/css/*\"\n  to = \"/css/:splat\"\n  status = 200\n  \n[[redirects]]\n  from = \"/js/*\"\n  to = \"/js/:splat\"\n  status = 200\n  \n[[redirects]]\n  from = \"/images/*\"\n  to = \"/images/:splat\"\n  status = 200\n  \n# 健康检查\n[[redirects]]\n  from = \"/health\"\n  to = \"/health.json\"\n  status = 200\n  \n[[redirects]]\n  from = \"/status\"\n  to = \"/status.json\"\n  status = 200\n\n# 头部设置\n[[headers]]\n  for = \"/*\"\n  [headers.values]\n    X-Frame-Options = \"DENY\"\n    X-Content-Type-Options = \"nosniff\"\n    X-XSS-Protection = \"1; mode=block\"\n    Referrer-Policy = \"strict-origin-when-cross-origin\"\n    \n# 下载文件头部\n[[headers]]\n  for = \"/1.0.2/*\"\n  [headers.values]\n    Cache-Control = \"public, max-age=3600\"\n    Access-Control-Allow-Origin = \"*\"\n    \n[[headers]]\n  for = \"/1.0.3/*\"\n  [headers.values]\n    Cache-Control = \"public, max-age=3600\"\n    Access-Control-Allow-Origin = \"*\"\n    \n# HTML文件缓存\n[[headers]]\n  for = \"/*.html\"\n  [headers.values]\n    Cache-Control = \"public, max-age=300\"\n    \n# 函数设置\n[functions]\n  directory = \"netlify/functions\"\n  \n# 边缘函数\n[edge_functions]\n  [[edge_functions]]\n    function = \"download-tracker\"\n    path = \"/api/download/*\"\n    \n  [[edge_functions]]\n    function = \"stats-reporter\"\n    path = \"/api/stats\""
+  },
+  "deployStats": {
+    "app-cdn.html": {
+      "size": 11405,
+      "lines": 262,
+      "hash": "c3c729ab660b2b7de6dedd0467e62c8d",
+      "modified": "2025-11-21T19:17:54.653Z"
+    },
+    "_redirects": {
+      "size": 1178,
+      "lines": 40,
+      "hash": "d3ba94718d8b84cef8253b2bc5005b5d",
+      "modified": "2025-11-21T18:37:02.057Z"
+    },
+    "netlify.toml": {
+      "size": 2629,
+      "lines": 140,
+      "hash": "09c63fad4c35b09f30a9158119829ac3",
+      "modified": "2025-11-21T18:37:40.268Z"
+    },
+    "cdn-links-generated.json": {
+      "size": 3958,
+      "lines": 121,
+      "hash": "d781adb270525847395ccc7d7d0d23e4",
+      "modified": "2025-11-21T18:26:06.631Z"
+    },
+    "cdn-mapping-config.json": {
+      "size": 6869,
+      "lines": 153,
+      "hash": "1eb1d62a154fc84b46b6bb69141c7179",
+      "modified": "2025-11-21T18:09:24.571Z"
+    },
+    "404.html": {
+      "size": 7026,
+      "lines": 242,
+      "hash": "e7dfb1a2d89c91000196c333611e5329",
+      "modified": "2025-11-21T19:40:59.163Z"
+    }
+  },
+  "backupPath": "/Users/elvis/Desktop/ai_projects/GoldWord-V1/deployment-backups/deploy-backup-2025-11-21T19-42-53-295Z",
+  "status": "ready_for_deployment",
+  "testResults": [
+    {
+      "success": false,
+      "statusCode": 301,
+      "url": "https://caishen.us.kg/",
+      "expectedStatus": 200
+    },
+    {
+      "success": false,
+      "statusCode": 301,
+      "url": "https://caishen.us.kg/app-cdn.html",
+      "expectedStatus": 200
+    },
+    {
+      "success": true,
+      "statusCode": 301,
+      "url": "https://caishen.us.kg/downloads-cdn.html",
+      "expectedStatus": 301
+    },
+    {
+      "success": false,
+      "statusCode": 301,
+      "url": "https://caishen.us.kg/404",
+      "expectedStatus": 404
+    }
+  ]
+}

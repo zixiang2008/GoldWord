@@ -1,0 +1,22 @@
+{
+  "deployId": "deploy-1763756302271",
+  "timestamp": "2025-11-21T20:18:22.271Z",
+  "site": "caishen.us.kg",
+  "files": [
+    "app-cdn.html",
+    "404.html",
+    "_redirects",
+    "netlify.toml",
+    "cdn-links-generated.json",
+    "cdn-mapping-config.json",
+    "index.html"
+  ],
+  "totalFiles": 7,
+  "totalSize": 152958,
+  "status": "ready",
+  "urls": {
+    "appCdn": "https://caishen.us.kg/app-cdn.html",
+    "downloadsCdn": "https://caishen.us.kg/downloads-cdn.html",
+    "mainSite": "https://caishen.us.kg/"
+  }
+}

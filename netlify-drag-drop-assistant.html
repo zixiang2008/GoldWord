@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Netlify拖拽部署助手 - GoldWord</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.3em;
+        }
+        
+        .netlify-console-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid #e9ecef;
+        }
+        
+        .console-button {
+            display: inline-block;
+            background: #00ad9f;
+            color: white;
+            text-decoration: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1.3em;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 173, 159, 0.3);
+            margin: 15px;
+        }
+        
+        .console-button:hover {
+            background: #009688;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 173, 159, 0.4);
+        }
+        
+        .file-browser {
+            background: #f1f3f4;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .file-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .file-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .file-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 3px;
+        }
+        
+        .file-size {
+            color: #888;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .drag-drop-visual {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+            border: 3px dashed #667eea;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 30px 0;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .drag-drop-visual:hover {
+            border-color: #5a67d8;
+            background: linear-gradient(135deg, #d1ecf1 0%, #e1f5fe 100%);
+        }
+        
+        .drag-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .drag-text {
+            color: #667eea;
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .drag-subtext {
+            color: #666;
+            font-size: 1em;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .step-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #dee2e6;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .step-dot.active {
+            background: #667eea;
+            transform: scale(1.2);
+        }
+        
+        .step-dot.completed {
+            background: #28a745;
+        }
+        
+        .verification-section {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 2px solid #28a745;
+        }
+        
+        .test-url-item {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .test-url-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .url-text {
+            color: #667eea;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .url-text:hover {
+            text-decoration: underline;
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .status-404 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-200 {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-301 {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .emergency-alert {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .emergency-alert h3 {
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+        
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .action-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .timer-display {
+            font-size: 1.2em;
+            color: #d63031;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #e9ecef;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Netlify拖拽部署助手</h1>
+            <p>GoldWord CDN 页面 404 错误修复</p>
+        </div>
+        
+        <div class="emergency-alert">
+            <h3>🚨 紧急部署通知</h3>
+            <p>https://caishen.us.kg/app-cdn.html 当前返回 404 错误</p>
+            <p>请立即执行拖拽部署修复问题</p>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+        </div>
+        
+        <div class="netlify-console-section">
+            <h3>🌐 步骤 1: 访问 Netlify 控制台</h3>
+            <p>点击下面的按钮访问 Netlify 控制台，找到您的站点：</p>
+            <div class="quick-actions">
+                <a href="https://app.netlify.com" target="_blank" class="console-button">
+                    🚀 打开 Netlify 控制台
+                </a>
+                <a href="https://app.netlify.com/sites/caishen.us.kg/deploys" target="_blank" class="console-button">
+                    📋 直接访问 Deploys 页面
+                </a>
+            </div>
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 15px 0; color: #856404;">
+                <strong>🔑 登录信息：</strong> 确保使用您的 Netlify 账户登录，找到站点 <strong>caishen.us.kg</strong>
+            </div>
+        </div>
+        
+        <div class="file-browser">
+            <h3>📁 步骤 2: 准备部署文件</h3>
+            <p>从 <code>netlify-deploy-package/</code> 目录中选择以下文件：</p>
+            
+            <div class="file-item" onclick="selectFile('app-cdn.html')">
+                <div class="file-icon">📄</div>
+                <div class="file-info">
+                    <div class="file-name">app-cdn.html</div>
+                    <div class="file-description">主下载页面（修复404的关键文件）</div>
+                </div>
+                <div class="file-size">11,405 bytes</div>
+            </div>
+            
+            <div class="file-item" onclick="selectFile('404.html')">
+                <div class="file-icon">⚠️</div>
+                <div class="file-info">
+                    <div class="file-name">404.html</div>
+                    <div class="file-description">自定义404错误页面</div>
+                </div>
+                <div class="file-size">7,026 bytes</div>
+            </div>
+            
+            <div class="file-item" onclick="selectFile('_redirects')">
+                <div class="file-icon">🔄</div>
+                <div class="file-info">
+                    <div class="file-name">_redirects</div>
+                    <div class="file-description">重定向规则配置</div>
+                </div>
+                <div class="file-size">1,178 bytes</div>
+            </div>
+            
+            <div class="file-item" onclick="selectFile('netlify.toml')">
+                <div class="file-icon">⚙️</div>
+                <div class="file-info">
+                    <div class="file-name">netlify.toml</div>
+                    <div class="file-description">修复后的Netlify配置文件</div>
+                </div>
+                <div class="file-size">1,533 bytes</div>
+            </div>
+            
+            <div class="file-item" onclick="selectFile('cdn-links-generated.json')">
+                <div class="file-icon">📊</div>
+                <div class="file-info">
+                    <div class="file-name">cdn-links-generated.json</div>
+                    <div class="file-description">CDN链接映射数据</div>
+                </div>
+                <div class="file-size">3,958 bytes</div>
+            </div>
+            
+            <div class="file-item" onclick="selectFile('cdn-mapping-config.json')">
+                <div class="file-icon">🗺️</div>
+                <div class="file-info">
+                    <div class="file-name">cdn-mapping-config.json</div>
+                    <div class="file-description">CDN映射配置文件</div>
+                </div>
+                <div class="file-size">6,869 bytes</div>
+            </div>
+        </div>
+        
+        <div class="drag-drop-visual">
+            <div class="drag-icon">📤</div>
+            <div class="drag-text">步骤 3: 拖拽文件到 Netlify</div>
+            <div class="drag-subtext">
+                在 Netlify 控制台中找到拖拽区域，将上述 6 个文件拖拽到指定区域
+            </div>
+            <div class="timer-display">部署预计时间: 1-2分钟</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="deploy-progress"></div>
+            </div>
+        </div>
+        
+        <div class="verification-section">
+            <h3>✅ 步骤 4: 验证部署结果</h3>
+            <p>部署完成后，立即测试以下URL：</p>
+            
+            <div class="test-url-item">
+                <div>
+                    <a href="https://caishen.us.kg/app-cdn.html" target="_blank" class="url-text">
+                        https://caishen.us.kg/app-cdn.html
+                    </a>
+                    <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                        主下载页面（当前404，期望200 OK）
+                    </div>
+                </div>
+                <div class="status-indicator status-404">当前: 404</div>
+                <div class="status-indicator status-200">期望: 200</div>
+            </div>
+            
+            <div class="test-url-item">
+                <div>
+                    <a href="https://www.caishen.us.kg/app-cdn.html" target="_blank" class="url-text">
+                        https://www.caishen.us.kg/app-cdn.html
+                    </a>
+                    <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                        www子域（当前404，期望200 OK）
+                    </div>
+                </div>
+                <div class="status-indicator status-404">当前: 404</div>
+                <div class="status-indicator status-200">期望: 200</div>
+            </div>
+            
+            <div class="test-url-item">
+                <div>
+                    <a href="https://caishen.us.kg/downloads-cdn.html" target="_blank" class="url-text">
+                        https://caishen.us.kg/downloads-cdn.html
+                    </a>
+                    <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                        旧地址重定向（当前301，期望301→/app-cdn.html）
+                    </div>
+                </div>
+                <div class="status-indicator status-301">当前: 301</div>
+                <div class="status-indicator status-301">期望: 301</div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="verifyDeployment()" class="console-button" style="background: #28a745;">
+                    🔍 验证部署结果
+                </button>
+            </div>
+        </div>
+        
+        <div style="background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 15px; padding: 25px; margin: 25px 0; color: #856404;">
+            <h4>🆘 如果仍然显示404？</h4>
+            <p><strong>1. 清除浏览器缓存</strong> - 使用 Ctrl+F5 强制刷新</p>
+            <p><strong>2. 等待CDN生效</strong> - 有时需要5-10分钟</p>
+            <p><strong>3. 检查部署日志</strong> - 在Netlify控制台查看详细日志</p>
+            <p><strong>4. 重新部署</strong> - 再次触发部署流程</p>
+        </div>
+        
+        <div class="footer">
+            <p>部署时间: <span id="current-time"></span></p>
+            <p>如果问题持续存在，请检查Netlify部署日志或联系技术支持</p>
+        </div>
+    </div>
+    
+    <script>
+        // 显示当前时间
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toLocaleString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // 文件选择功能
+        let selectedFiles = [];
+        
+        function selectFile(filename) {
+            const fileItem = event.target.closest('.file-item');
+            
+            if (selectedFiles.includes(filename)) {
+                selectedFiles = selectedFiles.filter(f => f !== filename);
+                fileItem.style.background = 'white';
+                fileItem.style.borderColor = '#e9ecef';
+            } else {
+                selectedFiles.push(filename);
+                fileItem.style.background = '#e8f4f8';
+                fileItem.style.borderColor = '#667eea';
+            }
+            
+            updateProgress();
+        }
+        
+        // 更新进度
+        function updateProgress() {
+            const progress = (selectedFiles.length / 6) * 100;
+            document.getElementById('deploy-progress').style.width = progress + '%';
+        }
+        
+        // 验证部署
+        function verifyDeployment() {
+            const urls = [
+                'https://caishen.us.kg/app-cdn.html',
+                'https://www.caishen.us.kg/app-cdn.html',
+                'https://caishen.us.kg/downloads-cdn.html'
+            ];
+            
+            let results = [];
+            let completed = 0;
+            
+            urls.forEach((url, index) => {
+                fetch(url, { method: 'HEAD' })
+                    .then(response => {
+                        results[index] = {
+                            url: url,
+                            status: response.status,
+                            ok: response.ok
+                        };
+                        completed++;
+                        
+                        if (completed === urls.length) {
+                            showVerificationResults(results);
+                        }
+                    })
+                    .catch(error => {
+                        results[index] = {
+                            url: url,
+                            status: 'error',
+                            error: error.message
+                        };
+                        completed++;
+                        
+                        if (completed === urls.length) {
+                            showVerificationResults(results);
+                        }
+                    });
+            });
+        }
+        
+        function showVerificationResults(results) {
+            let successCount = 0;
+            let totalCount = results.length;
+            
+            let message = '🔍 部署验证结果:\n\n';
+            
+            results.forEach(result => {
+                if (result.status === 200 || result.status === 301) {
+                    successCount++;
+                    message += `✅ ${result.url}\n   状态: ${result.status} (正常)\n\n`;
+                } else if (result.status === 'error') {
+                    message += `❌ ${result.url}\n   错误: ${result.error}\n\n`;
+                } else {
+                    message += `⚠️  ${result.url}\n   状态: ${result.status} (异常)\n\n`;
+                }
+            });
+            
+            message += `📊 总计: ${successCount}/${totalCount} 正常\n`;
+            
+            if (successCount === totalCount) {
+                message += '\n🎉 部署验证成功！所有URL正常访问。';
+                alert(message);
+            } else {
+                message += '\n⚠️ 部分验证失败，请检查部署状态。';
+                alert(message);
+            }
+        }
+        
+        // 自动更新步骤指示器
+        function updateStepIndicator() {
+            const dots = document.querySelectorAll('.step-dot');
+            let currentStep = 0;
+            
+            setInterval(() => {
+                dots.forEach((dot, index) => {
+                    if (index < currentStep) {
+                        dot.classList.add('completed');
+                        dot.classList.remove('active');
+                    } else if (index === currentStep) {
+                        dot.classList.add('active');
+                        dot.classList.remove('completed');
+                    } else {
+                        dot.classList.remove('active', 'completed');
+                    }
+                });
+                
+                currentStep = (currentStep + 1) % 4;
+            }, 3000);
+        }
+        
+        updateStepIndicator();
+    </script>
+</body>
+</html>

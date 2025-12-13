@@ -1,0 +1,8 @@
+{
+  "appId": "com.goldword.app",
+  "appName": "GoldWord",
+  "webDir": "www",
+  "server": {
+    "cleartext": true
+  }
+}

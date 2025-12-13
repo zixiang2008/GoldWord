@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI翻译修复测试 - 稳定版</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007aff;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        #translation-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .debug-info {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 AI翻译修复测试 - 稳定版</h1>
+        
+        <div class="test-section">
+            <h3>系统状态</h3>
+            <div id="system-status" class="test-result info">正在检查系统状态...</div>
+            <div id="debug-info" class="debug-info" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试按钮（模拟主界面）</h3>
+            <button data-translate="true" id="testBtn1">🔄 AI翻译所有界面</button>
+            <button data-translate="true" id="testBtn2">📤 导出翻译数据</button>
+            <button data-translate="true" id="testBtn3">📥 导入翻译数据</button>
+            <button data-translate="true" id="testBtn4">个人中心</button>
+            <button data-translate="true" id="testBtn5">👍 要记得</button>
+            <button data-translate="true" id="testBtn6">👎 不记得</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试控制</h3>
+            <button onclick="runSafeTest()" id="safeTestBtn">🧪 运行安全测试</button>
+            <button onclick="testElementSelection()" id="elementTestBtn">🔍 测试元素选择</button>
+            <button onclick="clearAllResults()" id="clearBtn">🗑️ 清除结果</button>
+        </div>
+        
+        <div class="test-section" id="progress-section" style="display: none;">
+            <h3>翻译进度</h3>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 0%">0%</div>
+            </div>
+            <div id="progress-text">准备就绪</div>
+        </div>
+        
+        <div class="test-section" id="log-section" style="display: none;">
+            <h3>翻译日志</h3>
+            <div id="translation-log"></div>
+        </div>
+        
+        <div class="test-section" id="results-section" style="display: none;">
+            <h3>测试结果</h3>
+            <div id="test-results"></div>
+        </div>
+    </div>
+
+    <script src="language-system/language-system-complete-updated.js"></script>
+    <script>
+        // 全局变量
+        let testResults = [];
+        let translationLog = [];
+        let isInitialized = false;
+        
+        // 页面加载时初始化
+        window.addEventListener('load', async function() {
+            console.log('🚀 开始初始化测试...');
+            await initializeTest();
+        });
+        
+        // 调试信息输出
+        function debug(message) {
+            console.log(`[DEBUG] ${message}`);
+            const debugInfo = document.getElementById('debug-info');
+            if (debugInfo) {
+                debugInfo.style.display = 'block';
+                debugInfo.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            }
+        }
+        
+        // 安全的元素获取函数
+        function safeGetElement(id) {
+            const element = document.getElementById(id);
+            if (!element) {
+                debug(`❌ 元素未找到: ${id}`);
+                return null;
+            }
+            return element;
+        }
+        
+        // 显示测试区域
+        function showTestSection(sectionId) {
+            const section = safeGetElement(sectionId);
+            if (section) {
+                section.style.display = 'block';
+                debug(`✅ 显示测试区域: ${sectionId}`);
+            }
+        }
+        
+        // 初始化测试
+        async function initializeTest() {
+            debug('开始初始化测试系统');
+            
+            const statusEl = safeGetElement('system-status');
+            if (!statusEl) {
+                console.error('无法找到系统状态元素');
+                return;
+            }
+            
+            try {
+                statusEl.textContent = '正在初始化多语言系统...';
+                
+                // 检查语言系统是否存在
+                if (typeof LanguageSystem === 'undefined') {
+                    throw new Error('LanguageSystem 未定义 - 请检查脚本文件是否正确加载');
+                }
+                
+                debug('✅ LanguageSystem 已找到');
+                
+                // 初始化系统
+                const initSuccess = await LanguageSystem.init({
+                    defaultLanguage: 'zh-CN',
+                    enableAutoDetect: true,
+                    enableCache: true,
+                    enableAI: true
+                });
+                
+                if (initSuccess) {
+                    statusEl.innerHTML = '<strong style="color: green;">✅ 系统初始化成功</strong>';
+                    debug('🎉 多语言系统初始化完成！');
+                    addTestResult('系统初始化', '成功', 'success');
+                    isInitialized = true;
+                    
+                    // 启用测试按钮
+                    const safeTestBtn = safeGetElement('safeTestBtn');
+                    const elementTestBtn = safeGetElement('elementTestBtn');
+                    if (safeTestBtn) safeTestBtn.disabled = false;
+                    if (elementTestBtn) elementTestBtn.disabled = false;
+                    
+                } else {
+                    throw new Error('系统初始化返回失败状态');
+                }
+                
+            } catch (error) {
+                debug(`❌ 系统初始化失败: ${error.message}`);
+                statusEl.innerHTML = `<strong style="color: red;">❌ 系统初始化失败:</strong><br>${error.message}`;
+                addTestResult('系统初始化', `失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 运行安全测试
+        async function runSafeTest() {
+            if (!isInitialized) {
+                alert('系统尚未初始化完成，请稍后再试');
+                return;
+            }
+            
+            debug('开始安全翻译测试');
+            clearAllResults();
+            showTestSection('progress-section');
+            showTestSection('log-section');
+            showTestSection('results-section');
+            
+            addTestResult('安全翻译测试', '开始测试安全翻译功能...', 'info');
+            
+            try {
+                // 切换到英文进行测试
+                debug('切换到英文语言');
+                await LanguageSystem.setLanguage('en-US');
+                addTestResult('语言切换', '已切换到英文', 'info');
+                
+                // 获取可翻译元素
+                debug('获取可翻译元素列表');
+                const elements = LanguageSystem.getAllTranslatableElements();
+                addTestResult('元素选择', `找到 ${elements.length} 个可翻译元素`, 'info');
+                
+                if (elements.length === 0) {
+                    addTestResult('警告', '没有找到可翻译元素，请检查 data-translate 属性', 'error');
+                    return;
+                }
+                
+                // 显示找到的元素
+                elements.forEach((el, index) => {
+                    const text = el.textContent?.trim() || '无文本';
+                    addTestResult(`元素 ${index + 1}`, `${el.tagName}: "${text}"`, 'info');
+                });
+                
+                // 开始翻译
+                updateProgress(0, '开始AI翻译...');
+                
+                const result = await LanguageSystem.translateAllUIElements('en-US', (progress) => {
+                    updateProgress(progress.percentage, `翻译进度: ${progress.translated}/${progress.total}`);
+                    addLog(`进度: ${progress.percentage}% (${progress.translated}/${progress.total})`);
+                });
+                
+                addTestResult('翻译结果', `成功翻译 ${result.translated}/${result.total} 个元素`, 'success');
+                updateProgress(100, '翻译完成！');
+                
+                // 验证翻译结果
+                setTimeout(() => {
+                    verifyTranslationResults();
+                }, 1000);
+                
+            } catch (error) {
+                debug(`❌ 安全翻译测试失败: ${error.message}`);
+                addTestResult('安全翻译测试', `错误: ${error.message}`, 'error');
+                updateProgress(0, '翻译失败');
+            }
+        }
+        
+        // 验证翻译结果
+        function verifyTranslationResults() {
+            debug('验证翻译结果');
+            const translatableElements = document.querySelectorAll('[data-translate="true"]');
+            let verifiedCount = 0;
+            
+            translatableElements.forEach((el, index) => {
+                const originalText = el.getAttribute('data-original-text') || '';
+                const currentText = el.textContent.trim();
+                const hasBeenTranslated = el.hasAttribute('data-translated');
+                
+                if (hasBeenTranslated && currentText !== originalText) {
+                    verifiedCount++;
+                    addTestResult(`验证 ${index + 1}`, `✅ "${originalText}" → "${currentText}"`, 'success');
+                } else if (hasBeenTranslated) {
+                    addTestResult(`验证 ${index + 1}`, `⚠️ 可能未翻译: "${currentText}"`, 'info');
+                } else {
+                    addTestResult(`验证 ${index + 1}`, `❓ 未标记为已翻译: "${currentText}"`, 'info');
+                }
+            });
+            
+            addTestResult('验证总结', `验证完成: ${verifiedCount}/${translatableElements.length} 个元素已翻译`, 'info');
+        }
+        
+        // 测试元素选择
+        function testElementSelection() {
+            if (!isInitialized) {
+                alert('系统尚未初始化完成，请稍后再试');
+                return;
+            }
+            
+            debug('开始元素选择测试');
+            clearResults();
+            showTestSection('results-section');
+            
+            addTestResult('元素选择测试', '正在分析页面元素...', 'info');
+            
+            try {
+                // 获取所有带 data-translate 属性的元素
+                const translatableElements = document.querySelectorAll('[data-translate="true"]');
+                
+                addTestResult('data-translate 元素', `找到 ${translatableElements.length} 个元素`, 'info');
+                
+                translatableElements.forEach((el, index) => {
+                    const text = el.textContent?.trim() || '无文本';
+                    const tagName = el.tagName;
+                    addTestResult(`元素 ${index + 1}`, `${tagName}: "${text}"`, 'info');
+                });
+                
+                // 测试 getAllTranslatableElements 方法
+                const systemElements = LanguageSystem.getAllTranslatableElements();
+                addTestResult('系统方法结果', `系统找到 ${systemElements.length} 个元素`, 'info');
+                
+                if (translatableElements.length !== systemElements.length) {
+                    addTestResult('差异警告', `手动查找: ${translatableElements.length}, 系统查找: ${systemElements.length}`, 'error');
+                } else {
+                    addTestResult('一致性检查', '元素数量一致 ✅', 'success');
+                }
+                
+            } catch (error) {
+                debug(`❌ 元素选择测试失败: ${error.message}`);
+                addTestResult('元素选择测试', `错误: ${error.message}`, 'error');
+            }
+        }
+        
+        // 更新进度条
+        function updateProgress(percentage, text) {
+            try {
+                const progressFill = safeGetElement('progress-fill');
+                const progressText = safeGetElement('progress-text');
+                
+                if (progressFill) {
+                    progressFill.style.width = percentage + '%';
+                    progressFill.textContent = percentage + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = text || `进度: ${percentage}%`;
+                }
+            } catch (error) {
+                debug(`更新进度条失败: ${error.message}`);
+            }
+        }
+        
+        // 添加日志
+        function addLog(message) {
+            try {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                translationLog.push(logEntry);
+                
+                const logContainer = safeGetElement('translation-log');
+                if (logContainer) {
+                    const logDiv = document.createElement('div');
+                    logDiv.textContent = logEntry;
+                    logContainer.appendChild(logDiv);
+                    
+                    // 滚动到底部
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            } catch (error) {
+                debug(`添加日志失败: ${error.message}`);
+            }
+        }
+        
+        // 添加测试结果
+        function addTestResult(title, content, type) {
+            try {
+                const resultsContainer = safeGetElement('test-results');
+                if (!resultsContainer) {
+                    debug(`❌ 测试结果容器未找到`);
+                    return;
+                }
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result ${type}`;
+                resultDiv.innerHTML = `<strong>${title}:</strong> ${content}`;
+                resultsContainer.appendChild(resultDiv);
+                
+                // 滚动到最新结果
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (error) {
+                debug(`添加测试结果失败: ${error.message}`);
+            }
+        }
+        
+        // 清除所有结果
+        function clearAllResults() {
+            try {
+                const resultsContainer = safeGetElement('test-results');
+                const logContainer = safeGetElement('translation-log');
+                
+                if (resultsContainer) resultsContainer.innerHTML = '';
+                if (logContainer) logContainer.innerHTML = '';
+                
+                translationLog = [];
+                updateProgress(0, '准备就绪');
+                
+                // 隐藏测试区域
+                const sections = ['progress-section', 'log-section', 'results-section'];
+                sections.forEach(sectionId => {
+                    const section = safeGetElement(sectionId);
+                    if (section) section.style.display = 'none';
+                });
+                
+                debug('✅ 已清除所有结果');
+            } catch (error) {
+                debug(`清除结果失败: ${error.message}`);
+            }
+        }
+        
+        // 保存原始文本（用于验证）
+        function saveOriginalTexts() {
+            const translatableElements = document.querySelectorAll('[data-translate="true"]');
+            translatableElements.forEach(el => {
+                if (!el.hasAttribute('data-original-text')) {
+                    el.setAttribute('data-original-text', el.textContent.trim());
+                }
+            });
+            debug(`✅ 已保存 ${translatableElements.length} 个元素的原始文本`);
+        }
+        
+        // 页面加载完成后保存原始文本
+        window.addEventListener('load', function() {
+            setTimeout(saveOriginalTexts, 1000);
+        });
+    </script>
+</body>
+</html>

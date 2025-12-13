@@ -1,0 +1,10 @@
+{"timestamp":"2025-11-25T02:21:42.332Z","event_type":"sync_test","log_level":"info","message":"service test","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T12:50:47.335Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T12:51:13.411Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T12:51:26.344Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T17:48:52.430Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T17:49:18.915Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T17:49:47.845Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T17:52:46.632Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T17:52:48.063Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}
+{"timestamp":"2025-11-25T17:52:54.400Z","event_type":"auth_required","log_level":"warn","message":"authorization required","device_info":{},"source":"app-cdn"}

@@ -1,0 +1,140 @@
+[build]
+  publish = "."
+  command = "echo 'Build completed'"
+  
+# 环境变量
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
+  
+# 重定向规则
+[[redirects]]
+  from = "/app-cdn.html"
+  to = "/app-cdn.html"
+  status = 200
+  
+[[redirects]]
+  from = "/downloads-cdn.html"
+  to = "/app-cdn.html"
+  status = 301
+  
+[[redirects]]
+  from = "/downloads.html"
+  to = "/app-cdn.html"
+  status = 301
+  
+[[redirects]]
+  from = "/download"
+  to = "/app-cdn.html"
+  status = 301
+  
+[[redirects]]
+  from = "/v1.0.3"
+  to = "/app-cdn.html"
+  status = 301
+  
+[[redirects]]
+  from = "/v1.0.2"
+  to = "/app-cdn.html"
+  status = 301
+  
+[[redirects]]
+  from = "/latest"
+  to = "/app-cdn.html"
+  status = 301
+  
+# 文件下载重定向 (临时使用GitHub，部署Worker后更改)
+[[redirects]]
+  from = "/1.0.2/*"
+  to = "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/:splat"
+  status = 302
+  
+[[redirects]]
+  from = "/1.0.3/*"
+  to = "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/:splat"
+  status = 302
+  
+# API端点 (预留)
+[[redirects]]
+  from = "/api/download/*"
+  to = "/.netlify/functions/download-proxy"
+  status = 200
+  
+[[redirects]]
+  from = "/api/stats"
+  to = "/.netlify/functions/download-stats"
+  status = 200
+  
+# 静态资源
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+  
+[[redirects]]
+  from = "/css/*"
+  to = "/css/:splat"
+  status = 200
+  
+[[redirects]]
+  from = "/js/*"
+  to = "/js/:splat"
+  status = 200
+  
+[[redirects]]
+  from = "/images/*"
+  to = "/images/:splat"
+  status = 200
+  
+# 健康检查
+[[redirects]]
+  from = "/health"
+  to = "/health.json"
+  status = 200
+  
+[[redirects]]
+  from = "/status"
+  to = "/status.json"
+  status = 200
+
+# 头部设置
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+# 下载文件头部
+[[headers]]
+  for = "/1.0.2/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*"
+    
+[[headers]]
+  for = "/1.0.3/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Access-Control-Allow-Origin = "*"
+    
+# HTML文件缓存
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+    
+# 函数设置
+[functions]
+  directory = "netlify/functions"
+  
+# 边缘函数
+[edge_functions]
+  [[edge_functions]]
+    function = "download-tracker"
+    path = "/api/download/*"
+    
+  [[edge_functions]]
+    function = "stats-reporter"
+    path = "/api/stats"

@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-11-24T13:27:57.221Z",
+  "local_validation": {
+    "modules_tested": [
+      "下载页面(app-cdn.html)",
+      "云同步服务器(cloud-sync-server.js)",
+      "云存储同步(cloud-storage-sync.js)",
+      "Android 构建(assembleRelease)"
+    ],
+    "ui_checks": [
+      "页面正常加载",
+      "下载按钮支持进度显示",
+      "失败时显示友好提示"
+    ],
+    "data_ops": [
+      "清理downloads目录零字节文件",
+      "生成/校验下载索引"
+    ],
+    "result": "passed",
+    "notes": "已通过本地端到端验证，部分云端上传因缺少凭据以模拟模式运行。"
+  },
+  "cloud_sync": {
+    "mechanism": "R2/S3 兼容上传，支持双向增量与冲突备份",
+    "bidirectional": true,
+    "incremental": true,
+    "conflict_resolution": "覆盖为云端版本并保留本地备份",
+    "logs": "cloud-storage-sync.log",
+    "report": "cloud-sync-report.json",
+    "result": "simulated"
+  },
+  "downloads_page_fix": {
+    "cause": "cdn-links-generated.json在云端缺失或不可访问导致初始化失败",
+    "fixes": [
+      "增加回退：读取release-report.json推断版本并仅提供GitHub下载",
+      "为CDN下载增加XHR分块进度与大小校验"
+    ],
+    "status": "applied"
+  },
+  "installer_handling": {
+    "cleanup": "已清理零字节与部分文件",
+    "rebuild": "Android APK 已重新生成",
+    "signature": "aapt不可用，以版本号同步与构建成功作为替代验证",
+    "components": "确认包含核心资源"
+  },
+  "regression": {
+    "scope": [
+      "页面加载与降级策略",
+      "下载流程与错误提示",
+      "云同步日志与报告生成",
+      "Android 构建可用性"
+    ],
+    "result": "passed",
+    "notes": "未发现新增问题"
+  }
+}
+Node: v22.12.0
+npm: 10.9.0

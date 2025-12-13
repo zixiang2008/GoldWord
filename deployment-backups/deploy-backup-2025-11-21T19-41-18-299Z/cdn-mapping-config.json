@@ -1,0 +1,153 @@
+{
+  "project": "GoldWord",
+  "github_repository": "https://github.com/zixiang2008/GoldWord",
+  "cdn_base_url": "https://caishen.us.kg",
+  "version_mapping": {
+    "1.0.3": {
+      "release_date": "2025-11-21",
+      "github_release_url": "https://github.com/zixiang2008/GoldWord/releases/tag/v1.0.3",
+      "cdn_version_path": "1.0.3",
+      "files": {
+        "goldword-android-pad-1.0.3.apk": {
+          "type": "android-pad",
+          "size": 10586580,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-android-pad-1.0.3.apk",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-android-pad-1.0.3.apk",
+          "description": "Android平板版本"
+        },
+        "goldword-android-phone-1.0.3.apk": {
+          "type": "android-phone",
+          "size": 14327349,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-android-phone-1.0.3.apk",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-android-phone-1.0.3.apk",
+          "description": "Android手机版本"
+        },
+        "goldword-ipad-1.0.3.ipa": {
+          "type": "ipad",
+          "size": 1155148,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-ipad-1.0.3.ipa",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-ipad-1.0.3.ipa",
+          "description": "iPad版本"
+        },
+        "goldword-mac-1.0.3.app.zip": {
+          "type": "mac-app",
+          "size": 236938072,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-mac-1.0.3.app.zip",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-mac-1.0.3.app.zip",
+          "description": "macOS应用包"
+        },
+        "goldword-mac-1.0.3.dmg": {
+          "type": "mac-dmg",
+          "size": 241476795,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-mac-1.0.3.dmg",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-mac-1.0.3.dmg",
+          "description": "macOS磁盘镜像"
+        },
+        "goldword-mac-1.0.3.zip": {
+          "type": "mac-zip",
+          "size": 236938072,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-mac-1.0.3.zip",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-mac-1.0.3.zip",
+          "description": "macOS压缩包"
+        },
+        "goldword-win-setup-1.0.3.exe": {
+          "type": "win-exe",
+          "size": 9226419,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-win-setup-1.0.3.exe",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-win-setup-1.0.3.exe",
+          "description": "Windows安装程序"
+        },
+        "goldword-win-setup-1.0.3.zip": {
+          "type": "win-zip",
+          "size": 700440862,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.3/goldword-win-setup-1.0.3.zip",
+          "cdn_url": "https://caishen.us.kg/1.0.3/goldword-win-setup-1.0.3.zip",
+          "description": "Windows压缩包"
+        }
+      }
+    },
+    "1.0.2": {
+      "release_date": "2025-11-20",
+      "github_release_url": "https://github.com/zixiang2008/GoldWord/releases/tag/v1.0.2",
+      "cdn_version_path": "1.0.2",
+      "files": {
+        "goldword-android-1.0.2.apk": {
+          "type": "android",
+          "size": 19218005,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-android-1.0.2.apk",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-android-1.0.2.apk",
+          "description": "Android版本"
+        },
+        "goldword-android-pad-1.0.2.apk": {
+          "type": "android-pad",
+          "size": 10586580,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-android-pad-1.0.2.apk",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-android-pad-1.0.2.apk",
+          "description": "Android平板版本"
+        },
+        "goldword-android-phone-1.0.2.apk": {
+          "type": "android-phone",
+          "size": 14327349,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-android-phone-1.0.2.apk",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-android-phone-1.0.2.apk",
+          "description": "Android手机版本"
+        },
+        "goldword-ios-1.0.2.ipa": {
+          "type": "ios",
+          "size": 1155148,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-ios-1.0.2.ipa",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-ios-1.0.2.ipa",
+          "description": "iOS版本"
+        },
+        "goldword-ipad-1.0.2.ipa": {
+          "type": "ipad",
+          "size": 1155148,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-ipad-1.0.2.ipa",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-ipad-1.0.2.ipa",
+          "description": "iPad版本"
+        },
+        "goldword-mac-1.0.2.dmg": {
+          "type": "mac-dmg",
+          "size": 13387704,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-mac-1.0.2.dmg",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-mac-1.0.2.dmg",
+          "description": "macOS磁盘镜像"
+        },
+        "goldword-mac-1.0.2.zip": {
+          "type": "mac-zip",
+          "size": 14202063,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-mac-1.0.2.zip",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-mac-1.0.2.zip",
+          "description": "macOS压缩包"
+        },
+        "goldword-web-1.0.2.zip": {
+          "type": "web",
+          "size": 417370,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-web-1.0.2.zip",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-web-1.0.2.zip",
+          "description": "Web版本"
+        },
+        "goldword-win-setup-1.0.2.exe": {
+          "type": "win-exe",
+          "size": 9226419,
+          "github_url": "https://github.com/zixiang2008/GoldWord/releases/download/v1.0.2/goldword-win-setup-1.0.2.exe",
+          "cdn_url": "https://caishen.us.kg/1.0.2/goldword-win-setup-1.0.2.exe",
+          "description": "Windows安装程序"
+        }
+      }
+    }
+  },
+  "download_pages": {
+    "original": "downloads.html",
+    "cdn_accelerated": "app-cdn.html",
+    "redirect_script": "redirect-to-cdn.js"
+  },
+  "cdn_deployment": {
+    "provider": "CloudFlare",
+    "domain": "caishen.us.kg",
+    "r2_bucket": "goldword-downloads",
+    "deployment_date": "2025-11-21",
+    "status": "active",
+    "global_acceleration": true
+  }
+}

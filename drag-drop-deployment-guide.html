@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Netlify拖拽部署指南 - GoldWord</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .status-banner {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+            font-weight: 500;
+        }
+        
+        .status-banner.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status-banner.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .deployment-steps {
+            text-align: left;
+            margin: 30px 0;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            left: -15px;
+            top: 25px;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .step h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-left: 20px;
+        }
+        
+        .step p {
+            color: #666;
+            line-height: 1.6;
+            margin-left: 20px;
+        }
+        
+        .file-list {
+            background: #e8f4f8;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #d1ecf1;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-icon {
+            color: #28a745;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: auto;
+        }
+        
+        .netlify-button {
+            display: inline-block;
+            background: #00ad9f;
+            color: white;
+            text-decoration: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 173, 159, 0.3);
+            margin: 20px 10px;
+        }
+        
+        .netlify-button:hover {
+            background: #009688;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 173, 159, 0.4);
+        }
+        
+        .verification-section {
+            background: #f1f3f4;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .verification-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .test-url {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .url-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .status-404 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-200 {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-301 {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .emergency-notice {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .emergency-notice h3 {
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .warning-box h4 {
+            color: #d63031;
+            margin-bottom: 10px;
+        }
+        
+        .drag-drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+        
+        .drag-drop-zone:hover {
+            background: #e8f2ff;
+            border-color: #5a67d8;
+        }
+        
+        .drag-drop-zone h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+        }
+        
+        .timer {
+            font-size: 1.1em;
+            color: #d63031;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Netlify拖拽部署指南</h1>
+            <p>解决 GoldWord CDN 页面 404 错误</p>
+        </div>
+        
+        <div class="emergency-notice">
+            <h3>⚠️ 紧急部署通知</h3>
+            <p>检测到 https://caishen.us.kg/app-cdn.html 返回 404 错误</p>
+            <p>请立即执行以下部署步骤修复问题</p>
+        </div>
+        
+        <div class="deployment-steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>🌐 访问 Netlify 控制台</h3>
+                <p>点击下面的按钮打开 Netlify 控制台，找到您的站点：</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="https://app.netlify.com" target="_blank" class="netlify-button">
+                        🚀 打开 Netlify 控制台
+                    </a>
+                </div>
+                <div class="warning-box">
+                    <h4>🔑 登录信息</h4>
+                    <p>确保使用您的 Netlify 账户登录，找到站点 <strong>caishen.us.kg</strong></p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>📁 准备部署文件</h3>
+                <p>以下文件已准备就绪，位于 <code>netlify-deploy-package/</code> 目录中：</p>
+                <div class="file-list">
+                    <div class="file-item">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">app-cdn.html</span>
+                        <span class="file-size">11,405 bytes</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">404.html</span>
+                        <span class="file-size">7,026 bytes</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">_redirects</span>
+                        <span class="file-size">1,178 bytes</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-icon">⚙️</span>
+                        <span class="file-name">netlify.toml</span>
+                        <span class="file-size">1,533 bytes</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-icon">📊</span>
+                        <span class="file-name">cdn-links-generated.json</span>
+                        <span class="file-size">3,958 bytes</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-icon">📊</span>
+                        <span class="file-name">cdn-mapping-config.json</span>
+                        <span class="file-size">6,869 bytes</span>
+                    </div>
+                </div>
+                <div class="warning-box">
+                    <h4>💡 文件说明</h4>
+                    <p><strong>app-cdn.html</strong> - 主下载页面（修复404的关键）</p>
+                    <p><strong>netlify.toml</strong> - 修复后的配置文件（移除无限重定向）</p>
+                    <p><strong>_redirects</strong> - 重定向规则文件</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>🎯 执行拖拽部署</h3>
+                <p>在 Netlify 控制台中：</p>
+                <div class="drag-drop-zone">
+                    <h4>📤 拖拽部署区域</h4>
+                    <p>找到站点概览页面的拖拽区域</p>
+                    <p>将上述所有文件拖拽到指定区域</p>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="background: #667eea; color: white; padding: 20px; border-radius: 10px; margin: 10px;">
+                        <strong>或者点击：</strong><br>
+                        <a href="https://app.netlify.com/sites/caishen.us.kg/deploys" target="_blank" 
+                           style="color: white; text-decoration: underline; font-size: 1.1em;">
+                            📋 进入 Deploys 页面 → Trigger deploy
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>⏳ 等待部署完成</h3>
+                <p>部署通常需要 <strong class="timer">1-2分钟</strong> 完成，请耐心等待。</p>
+                <div class="warning-box">
+                    <h4>⚡ 部署状态</h4>
+                    <p>• 状态会从 "Deploying" 变为 "Published"</p>
+                    <p>• 部署日志会显示成功信息</p>
+                    <p>• CDN 缓存需要几分钟更新</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>✅ 验证部署结果</h3>
+                <p>部署完成后，立即测试以下URL：</p>
+                <div class="verification-section">
+                    <div class="test-url">
+                        <a href="https://caishen.us.kg/app-cdn.html" target="_blank" class="url-link">
+                            https://caishen.us.kg/app-cdn.html
+                        </a>
+                        <span class="status-badge status-404">当前: 404</span>
+                        <span class="status-badge status-200">期望: 200 OK</span>
+                    </div>
+                    <div class="test-url">
+                        <a href="https://www.caishen.us.kg/app-cdn.html" target="_blank" class="url-link">
+                            https://www.caishen.us.kg/app-cdn.html
+                        </a>
+                        <span class="status-badge status-404">当前: 404</span>
+                        <span class="status-badge status-200">期望: 200 OK</span>
+                    </div>
+                    <div class="test-url">
+                        <a href="https://caishen.us.kg/downloads-cdn.html" target="_blank" class="url-link">
+                            https://caishen.us.kg/downloads-cdn.html
+                        </a>
+                        <span class="status-badge status-301">当前: 301</span>
+                        <span class="status-badge status-301">期望: 301 → /app-cdn.html</span>
+                    </div>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button onclick="verifyDeployment()" class="netlify-button" style="background: #28a745;">
+                        🔍 验证部署结果
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="warning-box">
+            <h4>🆘 如果仍然显示404？</h4>
+            <p><strong>1. 清除浏览器缓存</strong> - 使用 Ctrl+F5 或 Cmd+Shift+R 强制刷新</p>
+            <p><strong>2. 等待CDN生效</strong> - 有时需要5-10分钟</p>
+            <p><strong>3. 检查部署日志</strong> - 在Netlify控制台查看详细日志</p>
+            <p><strong>4. 重新部署</strong> - 再次触发部署流程</p>
+        </div>
+        
+        <div class="footer">
+            <p>部署时间: <span id="current-time"></span></p>
+            <p>如果问题持续存在，请检查Netlify部署日志或联系技术支持</p>
+        </div>
+    </div>
+    
+    <script>
+        // 显示当前时间
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+        
+        // 验证部署函数
+        function verifyDeployment() {
+            const urls = [
+                'https://caishen.us.kg/app-cdn.html',
+                'https://www.caishen.us.kg/app-cdn.html',
+                'https://caishen.us.kg/downloads-cdn.html'
+            ];
+            
+            let verificationResults = [];
+            let completed = 0;
+            
+            urls.forEach((url, index) => {
+                fetch(url, { method: 'HEAD' })
+                    .then(response => {
+                        verificationResults[index] = {
+                            url: url,
+                            status: response.status,
+                            ok: response.ok,
+                            headers: Object.fromEntries(response.headers.entries())
+                        };
+                        completed++;
+                        
+                        if (completed === urls.length) {
+                            showVerificationResults(verificationResults);
+                        }
+                    })
+                    .catch(error => {
+                        verificationResults[index] = {
+                            url: url,
+                            status: 'error',
+                            error: error.message
+                        };
+                        completed++;
+                        
+                        if (completed === urls.length) {
+                            showVerificationResults(verificationResults);
+                        }
+                    });
+            });
+        }
+        
+        function showVerificationResults(results) {
+            let successCount = 0;
+            let totalCount = results.length;
+            
+            results.forEach(result => {
+                if (result.status === 200 || result.status === 301) {
+                    successCount++;
+                }
+            });
+            
+            alert(`验证完成！\n\n成功: ${successCount}/${totalCount}\n\n详细结果:\n${results.map(r => 
+                `${r.url}: ${r.status} ${r.status === 200 ? '✅' : r.status === 301 ? '↻' : '❌'}`
+            ).join('\n')}`);
+            
+            if (successCount === totalCount) {
+                alert('🎉 部署验证成功！所有URL正常访问。');
+            } else {
+                alert('⚠️ 部分验证失败，请检查部署状态。');
+            }
+        }
+        
+        // 自动刷新页面状态
+        setInterval(() => {
+            document.getElementById('current-time').textContent = new Date().toLocaleString();
+        }, 1000);
+    </script>
+</body>
+</html>
