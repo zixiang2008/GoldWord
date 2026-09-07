@@ -464,7 +464,8 @@ const UI = {
             
             // 管理员面板可见性与渲染
             try {
-                const isAdmin = DB.isAdmin && DB.isAdmin();
+                // 兜底：即使云端/本地用户记录暂缺，caishen 管理员登录即为管理员
+                const isAdmin = (DB.isAdmin && DB.isAdmin()) || (window.isAdminNow === true) || (DB.getCurrentUserId && DB.getCurrentUserId() === 'caishen');
                 if (this.elements.adminPanelSection) this.elements.adminPanelSection.style.display = isAdmin ? 'block' : 'none';
                 if (isAdmin) this.renderAdminUsers && this.renderAdminUsers();
             } catch(_){}
@@ -645,12 +646,14 @@ const UI = {
             }
             if (this.elements.settingsMenuImportBtn) {
                 this.elements.settingsMenuImportBtn.addEventListener('click', () => {
-                    document.getElementById('importJsonBtn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (window.SettingsNav) SettingsNav.go('words');
+                    setTimeout(() => { document.getElementById('importJsonBtn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 80);
                 });
             }
             if (this.elements.settingsMenuExportBtn) {
                 this.elements.settingsMenuExportBtn.addEventListener('click', () => {
-                    document.getElementById('exportJsonBtn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (window.SettingsNav) SettingsNav.go('words');
+                    setTimeout(() => { document.getElementById('exportJsonBtn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 80);
                 });
             }
             // 点击页面其它区域关闭菜单
@@ -823,29 +826,20 @@ const UI = {
         }
         if (this.elements.authLoginBtn) {
             this.elements.authLoginBtn.addEventListener('click', () => {
-                // 如果存在登录模态框，则优先弹出模态框
-                if (this.elements.loginModal) {
-                    this.elements.loginModal.style.display = 'block';
-                    // 预填默认游客账号，降低首次使用门槛
-                    if (this.elements.loginModalUserId) this.elements.loginModalUserId.value = 'guest';
-                    if (this.elements.loginModalPin) this.elements.loginModalPin.value = '0000';
-                    if (this.elements.loginModalStatus) { this.elements.loginModalStatus.textContent = '默认游客账号：guest / 0000'; this.elements.loginModalStatus.style.color = '#555'; }
-                    return;
-                }
-                // 兼容旧流程：直接使用覆盖层中的输入进行登录
+                // 直接使用覆盖层输入进行登录，不再依赖登录模态框
                 const id = document.getElementById('authUserId')?.value?.trim();
                 const pin = document.getElementById('authPin')?.value || '';
                 if (!id) { this.elements.authStatus.textContent = '请输入账号'; this.elements.authStatus.style.color = '#ff3b30'; return; }
                 if (id === 'caishen') {
                     if (pin !== 'ilovecaishen') { this.elements.authStatus.textContent = '管理员密码不正确'; this.elements.authStatus.style.color = '#ff3b30'; return; }
-                    App.loginUser(id, pin);
                 } else {
                     if (!/^\d{4}$/.test(pin)) { this.elements.authStatus.textContent = 'PIN 必须为4位数字'; this.elements.authStatus.style.color = '#ff3b30'; return; }
-                    App.loginUser(id, pin);
                 }
+                App.loginUser(id, pin);
                 this.elements.authStatus.textContent = '登录成功';
                 this.elements.authStatus.style.color = '#34c759';
                 if (this.elements.authPage) this.elements.authPage.style.display = 'none';
+                if (window.SettingsNav) SettingsNav.go('account');
                 setTimeout(() => { openSettingsPanel(); }, 100);
             });
         }
@@ -1689,9 +1683,15 @@ if (UI.elements.cfgImportAllPromptsBtn) {
             }
             // 顶部“要复习”按钮
             if (this.elements.dontRememberTopBtn) this.elements.dontRememberTopBtn.textContent = map.review;
-            // 记得 / 不记得
-            if (this.elements.correctButton) this.elements.correctButton.lastChild && (this.elements.correctButton.lastChild.textContent = map.remember);
-            if (this.elements.dontRememberBtn) this.elements.dontRememberBtn.lastChild && (this.elements.dontRememberBtn.lastChild.textContent = map.dontRemember);
+            // 记得 / 不记得（只更新 i18n 子节点文本，避免在按钮末尾追加重复文本节点）
+            if (this.elements.correctButton) {
+                const n = this.elements.correctButton.querySelector('span[data-i18n]');
+                if (n) { n.textContent = map.remember; } else { this.elements.correctButton.lastChild && (this.elements.correctButton.lastChild.textContent = map.remember); }
+            }
+            if (this.elements.dontRememberBtn) {
+                const n = this.elements.dontRememberBtn.querySelector('span[data-i18n]');
+                if (n) { n.textContent = map.dontRemember; } else { this.elements.dontRememberBtn.lastChild && (this.elements.dontRememberBtn.lastChild.textContent = map.dontRemember); }
+            }
             // 翻转卡片（保留 SVG 图标）
             if (this.elements.flipButton) {
                 const svg = this.elements.flipButton.querySelector('svg');
@@ -2368,6 +2368,7 @@ if (UI.elements.cfgImportAllPromptsBtn) {
         // 每次更新卡片时确保显示的是正面
         if (this.elements.flashcard) {
             this.elements.flashcard.classList.remove('flipped');
+            document.body.classList.remove('card-flipped');
         }
     },
 
@@ -2533,6 +2534,7 @@ if (UI.elements.cfgImportAllPromptsBtn) {
         if (this.elements.flashcard) {
             const el = this.elements.flashcard;
             el.classList.toggle('flipped');
+            document.body.classList.toggle('card-flipped', el.classList.contains('flipped'));
             const isBack = el.classList.contains('flipped');
             if (!isBack && this.elements.wordFront) {
                 this.fitFrontWord();

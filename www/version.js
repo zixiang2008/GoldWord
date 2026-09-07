@@ -28,6 +28,14 @@
   try{
     const vEl=q('appVersion'); if(!vEl) return;
     const v=await resolveVersion(); if(v){ vEl.textContent='v'+v; vEl.style.fontSize='12px'; vEl.style.color='#666666'; vEl.style.whiteSpace='nowrap'; }
+    // 信息栏“代码版本”显示与详情弹层（点击查看 version.json / latest.json / version-mac.json）
+    try{
+      const cEl=q('codeVersion');
+      if(cEl && v){
+        cEl.textContent=v;
+        cEl.onclick=async function(ev){ ev.stopPropagation(); const d=await gatherDetails(); showOverlay(d); };
+      }
+    }catch(_){ }
     vEl.onclick=async function(){ const d=await gatherDetails(); showOverlay(d); };
   }catch(_){ }
 })();

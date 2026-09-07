@@ -303,6 +303,19 @@ const App = {
             DB.processExcelFile(file, () => {
                 App.loadWords();
             });
+        } else if (ext === 'txt') {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const text = (e.target.result || '').toString();
+                    if (!text.trim()) { alert('文件内容为空'); return; }
+                    App.importTextData(text);
+                } catch (err) {
+                    console.error('读取 txt 失败:', err);
+                    alert('读取 txt 失败：' + err.message);
+                }
+            };
+            reader.readAsText(file);
         } else if (ext === 'docx') {
             this.importDocxFile(file);
         } else if (ext === 'doc') {

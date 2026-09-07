@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = "echo 'Build completed'"
+  command = "cp -r www/. . && echo 'Build completed'"
 
 # 核心重定向规则 - 修复404错误的关键配置
 [[redirects]]

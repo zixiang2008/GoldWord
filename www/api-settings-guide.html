@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API设置指导</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; margin: 0; padding: 24px; background: #f7f7f7; }
+        .container { max-width: 780px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); padding: 20px; }
+        h1 { font-size: 20px; margin: 0 0 12px; }
+        p { color: #555; line-height: 1.6; }
+        ul { list-style: none; padding: 0; margin: 16px 0; }
+        li { margin-bottom: 10px; }
+        a.link { display: inline-block; padding: 8px 12px; background: #007aff; color: #fff; border-radius: 8px; text-decoration: none; }
+        a.link:hover { background: #005fd1; }
+        .actions { display: flex; gap: 12px; margin-top: 16px; }
+        .btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; }
+        .btn-primary { background: #00c4b4; color: #fff; }
+        .btn-secondary { background: #eee; color: #333; }
+    </style>
+    <script>
+        function goBack() { if (history.length > 1) { history.back(); } else { window.location.href = 'index.html'; } }
+        function closePage() { window.close(); }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>API设置指导</h1>
+        <p>下面模型，一键直达「API Key 获取页」，点进去 10 秒就能拿到 key，复制后返回填写！</p>
+
+        <div style="margin-top:12px; border-top:1px solid #eee; padding-top:12px;">
+            <h2 style="font-size:16px; margin:0 0 8px;">平台速览（含免费额度与备注）</h2>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                    <thead>
+                        <tr style="background:#f8f9fa;">
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">平台</th>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">模型示例</th>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Key 获取页</th>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">免费额度</th>
+                            <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">DeepSeek</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">deepseek-chat、deepseek-coder</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://platform.deepseek.com/api-keys" target="_blank">https://platform.deepseek.com/api-keys</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">每天百万 token</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">完全兼容 OpenAI SDK</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Groq</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">llama3-70b、mixtral</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://console.groq.com/keys" target="_blank">https://console.groq.com/keys</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">高速免费层</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">超低延迟</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Together AI</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">qwen、llama</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://api.together.xyz/settings/api-keys" target="_blank">https://api.together.xyz/settings/api-keys</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">$25 免费信用</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">50+ 开源模型</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Fireworks AI</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">mixtral、llama</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://app.fireworks.ai/api-keys" target="_blank">https://app.fireworks.ai/api-keys</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">免费试用</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">专注推理加速</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Novita AI</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">GPT 兼容</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://nova-ai.com/dashboard/api-keys" target="_blank">https://nova-ai.com/dashboard/api-keys</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">每天 100 次</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">国内中转低延迟</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Gemini</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">gemini-1.5-pro、gemini-2.5-flash</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://aistudio.google.com/app/apikey" target="_blank">https://aistudio.google.com/app/apikey</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Tier1 免费：15 RPM / 100 RPD / 1500 RPD（视模型）</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Google 官方，1M token 上下文，升级付费解锁更高限额</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">OpenRouter</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">GPT-4o、Claude-3.5、Llama-405B + 30+ 免费模型</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://openrouter.ai/keys" target="_blank">https://openrouter.ai/keys</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">免费模型：50 次/天（买 $10 信用升至 1000 次/天）<br/>BYOK：首 100 万次/月免费</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">一键切换 100+ 模型，OpenAI 格式</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">GitHub</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">GitHub Copilot（代码补全）</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://github.com/settings/tokens?type=fine_grained" target="_blank">https://github.com/settings/tokens?type=fine_grained</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">个人免费（需 Copilot 订阅）<br/>企业版按座付费</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">选 “Copilot Requests” 读权限，VSCode/CLI 专用</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">DeepSeek（零 key）</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">deepseek-r1:1.5b、tinyllama</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://mlvoca.com/api/generate" target="_blank">https://mlvoca.com/api/generate</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">完全零 key、无限额（公益转发）</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">直调 POST 接口，Ollama 格式，国内超快</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">HuggingFace</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">千款开源（Mistral、Llama、Flux）</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://huggingface.co/settings/tokens" target="_blank">https://huggingface.co/settings/tokens</a></td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">未登录：1 次/小时<br/>免费注册：≈300 次/小时<br/>PRO($9/月)：20× 信用</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Serverless Inference API，一行代码调用</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">Cloudflare</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">@cf/meta/llama-3.1-8b、@cf/qwen2.5、@cf/mistral</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;"><a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank">https://dash.cloudflare.com/profile/api-tokens</a> → 创建 “Workers AI” Token</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">免费层：10 万 NVU/天（≈ 1000 次中长对话）<br/>付费 $0.01/NVU</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee;">边缘算力 0.1s 冷启动，OpenAI 兼容</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="goBack()">返回设置页</button>
+            <button class="btn btn-secondary" onclick="closePage()">关闭此页</button>
+        </div>
+    </div>
+</body>
+</html>
