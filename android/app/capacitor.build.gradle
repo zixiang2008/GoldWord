@@ -2,19 +2,14 @@
 
 android {
   compileOptions {
-      sourceCompatibility JavaVersion.VERSION_17
-      targetCompatibility JavaVersion.VERSION_17
+      sourceCompatibility JavaVersion.VERSION_21
+      targetCompatibility JavaVersion.VERSION_21
   }
 }
 
-def cordovaVars = file("../capacitor-cordova-android-plugins/cordova.variables.gradle")
-if (cordovaVars.exists()) {
-  apply from: cordovaVars
-} else {
-  println "[Capacitor] Skipping Cordova plugins: variables file not found"
-}
+apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-
+    implementation project(':capacitor-community-text-to-speech')
 
 }
 

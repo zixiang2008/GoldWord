@@ -808,6 +808,14 @@
                         <input id="gptBaseUrl" type="text" placeholder="API 基础地址，例如 https://api.openai.com" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
                         <input id="gptModel" type="text" placeholder="模型名，例如 gpt-4o-mini 或其它免费模型" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
                         <input id="gptApiKey" type="password" placeholder="API 密钥（仅本机保存）" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <div style="display:grid; grid-template-columns:minmax(140px, 1fr) minmax(140px, 1fr); gap:8px;">
+                            <input id="gptTimeoutMs" type="number" min="3000" max="120000" step="1000" placeholder="超时毫秒（默认 30000）" style="padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                            <label style="display:flex; align-items:center; gap:6px; font-size:14px; color:#555;"><input id="gptFallbackEnabled" type="checkbox" /> 主服务失败时启用备用源</label>
+                        </div>
+                        <input id="gptFallbackBaseUrl" type="text" placeholder="备用 API 基础地址（可选）" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <input id="gptFallbackModel" type="text" placeholder="备用模型名（可选）" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <input id="gptFallbackApiKey" type="password" placeholder="备用 API Key（留空则复用主 Key，仅本机保存）" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;" />
+                        <div style="font-size:12px; color:#666;">默认源为财绅网关；密钥不会写入源码或 APK。聊天中出现过的旧 Key 应先轮换，再在本机填写。</div>
                         <div style="display:flex; gap:10px; flex-wrap:wrap;">
                             <button id="gptSaveBtn" style="background:#007aff; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;" data-i18n="buttons.saveSettings"></button>
                             <button id="gptTestBtn" style="background:#00c4b4; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer;" data-i18n="buttons.testSettings"></button>
@@ -976,6 +984,7 @@
 <script src="i18n.js" charset="utf-8"></script>
 <script src="visit-backup.js" charset="utf-8"></script>
 <script src="word-schema.js" charset="utf-8"></script>
+    <script src="api-client.js" charset="utf-8"></script>
     <script src="word-enhancement-service.js" charset="utf-8"></script>
     <script src="db.js?v=3" charset="utf-8"></script>
     <script src="built-in-models.js" charset="utf-8"></script>
@@ -1004,5 +1013,5 @@
         }
       })();
     </script>
-<script>(function(){if(!window.App)return;var oC=App.speakChinese;App.speakChinese=async function(t){try{var r=parseFloat((window.UI&&UI.elements&&UI.elements.speechRate&&UI.elements.speechRate.value)||"1"),a=(window.UI&&UI.elements&&UI.elements.accentZh&&UI.elements.accentZh.value)||"zh-CN",n=(t!=null&&String(t).trim())||(window.UI&&UI.state&&UI.state.frontChineseText)||"",s=String(n||"").trim();if(!s)return;var h=window.speechSynthesis;if(h&&typeof window.SpeechSynthesisUtterance!=="undefined"){var u=new SpeechSynthesisUtterance(s);u.rate=r;u.lang=a;await new Promise(function(e){try{u.onend=e;u.onerror=e;}catch(_){ }h.speak(u);});return;}}catch(_){ }return await oC.call(App,t);};var oW=App.speakWord;App.speakWord=async function(w){var c=(w!=null&&w!==undefined)?String(w):(App.words[App.currentIndex]?App.words[App.currentIndex].word:""),r=parseFloat((window.UI&&UI.elements&&UI.elements.speechRate&&UI.elements.speechRate.value)||"1"),h=window.speechSynthesis;if(h&&typeof window.SpeechSynthesisUtterance!=="undefined"){return await oW.call(App,w);}var m=Math.max(600,Math.round(800*c.length/Math.max(r,0.1)));await oW.call(App,w);await App.delay(m);};var oR=App.runLearnMode;App.runLearnMode=async function(){var m=(window.UI&&UI.elements&&UI.elements.learnMode?UI.elements.learnMode.value:"en1"),c=App.words[App.currentIndex]?App.words[App.currentIndex].word:"";if(!c)return;var s=async function(){await App.speakWord(c);await App.delay(200);},z=(window.UI&&UI.state&&UI.state.frontChineseText)||"";if(!String(z||" ").trim())z=c;switch(m){case"en1":await s();break;case"en1zh1":await s();await App.speakChinese(z);break;case"en2":await s();await s();break;case"en2zh1":await s();await App.speakChinese(z);await s();break;default:await s();}};var f=App.flipCard,n=App.nextCard;App.flipCard=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking){var w=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking)return setTimeout(w,150);try{f.call(App);}catch(_){ }};return w();}return f.call(App);};App.nextCard=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking){var w=function(){if(window.speechSynthesis&&window.speechSynthesis.speaking)return setTimeout(w,150);try{n.call(App);}catch(_){ }};return w();}return n.call(App);};})();</script></body>
+</body>
 </html>

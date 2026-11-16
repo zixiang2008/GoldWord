@@ -14,7 +14,7 @@
 
 GoldWord is an **offline-first**, lightweight English vocabulary learning and review app: a fully static, **zero-backend** web app with all data stored locally. It turns memorization into "wealth building" — every review cycle grows your personal word vault.
 
-The all-new **v1.2.0** redesigned the **Personal Center** into a **single-page layout**: all settings on one scrollable page, panel width at 80% of the screen, responsive multi-column word-management cards, plus chapter quick-jump navigation with scroll highlighting.
+**v2.0.0** modernizes Android and the API layer with Capacitor 8 / Android API 36, native TTS sequencing, configurable OpenAI-compatible providers, request timeouts, and failover. The Caisheng gateway URL is prefilled, but no API key is included in source code or the APK.
 
 ---
 
@@ -44,6 +44,8 @@ The all-new **v1.2.0** redesigned the **Personal Center** into a **single-page l
 - **Export & backup**: export the current dictionary, restore the original one-click, clear the dictionary.
 - **Study statistics**: total words, review progress, strict coverage; when logged in also 30-day / 24-hour study, overall progress and daily goal.
 - **GPT enrichment**: pick a built-in model preset or configure a custom `Base URL / Model / API Key` to generate/enrich word cards; "GPT-only mode" disables the local fallback.
+- **API resilience**: primary/fallback OpenAI-compatible providers, independent models and keys, and configurable 3–120 second timeouts.
+- **Android tablets**: Capacitor 8 native TTS waits for speech completion before flipping or advancing during continuous playback.
 - **Custom field prompts**: every card field exposes its own editable GPT prompt with import/copy/enable-all controls.
 - **Voice test**: built-in TTS speech test.
 - **Multi-language UI**: 中文 / English / ภาษาไทย / 日本語 / Español.
@@ -221,6 +223,7 @@ npx netlify-cli deploy --prod --dir=www
 | Version | Date | Notes |
 | --- | --- | --- |
 | **1.2.0** | 2026-09 | Personal Center redesigned to a single-page layout (80% screen width); responsive multi-column word-management cards; chapter quick-jump + scroll highlight; adaptive statistics columns |
+| **2.0.0** | 2026-11 | Android API 36 / Capacitor 8; reliable native TTS autoplay; unified OpenAI-compatible API timeout/failover; removed embedded admin password and repository signing file |
 | 1.1.0 | 2026-09 | Version display rework (`vX.Y.Z` status + code-version chip + detail overlay); `www/` single-source convergence; restored built-in dictionary/templates |
 | 1.0.x | 2025 | Core features: flashcard study, import/export, GPT config, multi-language, login/stats, offline PWA |
 

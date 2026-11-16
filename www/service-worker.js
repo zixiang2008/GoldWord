@@ -1,15 +1,18 @@
 // 缓存名称和版本（提升版本以强制客户端清理旧缓存与激活新策略）
-const CACHE_NAME = 'goldword-cache-v4';
+const CACHE_NAME = 'goldword-cache-v5';
 
 // 需要缓存的资源列表（不缓存 index.html，避免页面更新被旧缓存拦截）
-// 将 /debug.html 纳入预缓存，确保在离线或网络波动时可直接打开调试页
 const urlsToCache = [
     '/',
     '/db.js',
     '/app.js',
     '/ui.js',
-    '/manifest.json',
-    '/debug.html'
+    '/api-client.js',
+    '/word-enhancement-service.js',
+    '/built-in-models.js',
+    '/built-in-words.js',
+    '/local-dictionary.json',
+    '/manifest.json'
 ];
 
 // 安装Service Worker并缓存资源（强制跳过等待，尽快激活新版）
@@ -48,7 +51,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
 
-  // 对页面导航使用网络优先策略，且在网络失败时优先匹配对应请求（如 /debug.html）
+  // 对页面导航使用网络优先策略，且在网络失败时优先匹配对应请求
   // 若没有精确缓存，再回退到 /index.html
   if (req.mode === 'navigate' || (req.method === 'GET' && req.headers.get('accept')?.includes('text/html'))) {
     event.respondWith(

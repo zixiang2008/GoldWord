@@ -1,9 +1,10 @@
 {
   "name": "goldword-v1",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
+    "test": "node scripts/test-core.js",
     "gen:downloads": "node scripts/generate-downloads-index.js",
     "gen:downloads:103": "node scripts/generate-downloads-index.js 1.0.3",
     "dev:electron": "electron .",
@@ -24,9 +25,11 @@
     "rollback:auto:once": "node scripts/auto-rollback-daemon.js --once",
     "rollback:feature": "node scripts/feature-rollback.js",
     "postversion": "node scripts/version-backup.js && node scripts/generate-release-report.js",
+    "android:sync": "npx cap sync android",
+    "android:build:debug": "cd android && ./gradlew clean assembleDebug",
     "android:build:release": "cd android && ./gradlew clean assembleRelease",
-    "android:verify:apk": "node scripts/signing-verify.js downloads/1.0.5/goldword-android-pad-1.0.5.apk",
-    "android:audit": "node scripts/signing-audit.js downloads/1.0.5/goldword-android-pad-1.0.5.apk",
+    "android:verify:apk": "node scripts/signing-verify.js android/app/build/outputs/apk/debug/app-debug.apk",
+    "android:audit": "node scripts/signing-audit.js android/app/build/outputs/apk/debug/app-debug.apk",
     "android:export:pepk": "node scripts/export-pepk.js",
     "android:build:aab": "cd android && ANDROID_KEYSTORE_PATH=temp-release.keystore ANDROID_KEYSTORE_STORE_PASSWORD=$ANDROID_KEYSTORE_STORE_PASSWORD ANDROID_KEYSTORE_ALIAS=$ANDROID_KEYSTORE_ALIAS ANDROID_KEYSTORE_KEY_PASSWORD=$ANDROID_KEYSTORE_KEY_PASSWORD ./gradlew bundleRelease",
     "android:diag": "node scripts/adb-diagnostics.js downloads/1.0.5/goldword-android-pad-1.0.5.apk"
@@ -75,9 +78,10 @@
     "netlify-cli": "^23.11.1"
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.1",
-    "@capacitor/cli": "^6.2.1",
-    "@capacitor/core": "^6.2.1",
-    "@capacitor/ios": "^6.2.1"
+    "@capacitor-community/text-to-speech": "8.0.2",
+    "@capacitor/android": "8.6.2",
+    "@capacitor/cli": "8.6.2",
+    "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2"
   }
 }

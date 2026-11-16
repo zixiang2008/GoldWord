@@ -475,6 +475,13 @@ const UI = {
             if (this.elements.gptBaseUrl) this.elements.gptBaseUrl.value = cfg.baseUrl || '';
             if (this.elements.gptModel) this.elements.gptModel.value = cfg.model || '';
             if (this.elements.gptApiKey) this.elements.gptApiKey.value = cfg.apiKey || '';
+            const setApiValue = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
+            setApiValue('gptTimeoutMs', cfg.timeoutMs || 30000);
+            setApiValue('gptFallbackBaseUrl', cfg.fallbackBaseUrl);
+            setApiValue('gptFallbackModel', cfg.fallbackModel);
+            setApiValue('gptFallbackApiKey', cfg.fallbackApiKey);
+            const fallbackToggle = document.getElementById('gptFallbackEnabled');
+            if (fallbackToggle) fallbackToggle.checked = !!cfg.fallbackEnabled;
             if (this.elements.gptTestStatus) this.elements.gptTestStatus.textContent = '';
             // 仅使用GPT模式复选框
             try {
@@ -811,9 +818,10 @@ const UI = {
                 const pin = document.getElementById('authPin')?.value || '';
                 const pinConfirm = document.getElementById('authPinConfirm')?.value || '';
                 if (!id) { this.elements.authStatus.textContent = '请输入账号'; this.elements.authStatus.style.color = '#ff3b30'; return; }
-                // 管理员隐藏账号：caishen / ilovecaishen（使用密码）
+                // 管理员账号由用户首次在本机创建，不再包含内置密码。
                 if (id === 'caishen') {
-                    if (pin !== 'ilovecaishen') { this.elements.authStatus.textContent = '管理员密码不正确'; this.elements.authStatus.style.color = '#ff3b30'; return; }
+                    if (pin.length < 8) { this.elements.authStatus.textContent = '管理员密码至少 8 位'; this.elements.authStatus.style.color = '#ff3b30'; return; }
+                    if (pin !== pinConfirm) { this.elements.authStatus.textContent = '两次密码不一致'; this.elements.authStatus.style.color = '#ff3b30'; return; }
                     App.registerUser(id, name || '管理员', pin);
                 } else {
                     if (!/^\d{4}$/.test(pin)) { this.elements.authStatus.textContent = 'PIN 必须为4位数字'; this.elements.authStatus.style.color = '#ff3b30'; return; }
@@ -830,9 +838,7 @@ const UI = {
                 const id = document.getElementById('authUserId')?.value?.trim();
                 const pin = document.getElementById('authPin')?.value || '';
                 if (!id) { this.elements.authStatus.textContent = '请输入账号'; this.elements.authStatus.style.color = '#ff3b30'; return; }
-                if (id === 'caishen') {
-                    if (pin !== 'ilovecaishen') { this.elements.authStatus.textContent = '管理员密码不正确'; this.elements.authStatus.style.color = '#ff3b30'; return; }
-                } else {
+                if (id !== 'caishen') {
                     if (!/^\d{4}$/.test(pin)) { this.elements.authStatus.textContent = 'PIN 必须为4位数字'; this.elements.authStatus.style.color = '#ff3b30'; return; }
                 }
                 App.loginUser(id, pin);
@@ -855,7 +861,6 @@ const UI = {
                 const pin = this.elements.loginModalPin?.value || '';
                 if (!id) { if (this.elements.loginModalStatus) { this.elements.loginModalStatus.textContent = '请输入账号'; this.elements.loginModalStatus.style.color = '#ff3b30'; } return; }
                 if (id === 'caishen') {
-                    if (pin !== 'ilovecaishen') { if (this.elements.loginModalStatus) { this.elements.loginModalStatus.textContent = '管理员密码不正确'; this.elements.loginModalStatus.style.color = '#ff3b30'; } return; }
                     App.loginUser(id, pin);
                 } else {
                     if (!/^\d{4}$/.test(pin)) { if (this.elements.loginModalStatus) { this.elements.loginModalStatus.textContent = 'PIN 必须为4位数字'; this.elements.loginModalStatus.style.color = '#ff3b30'; } return; }
@@ -924,7 +929,12 @@ const UI = {
                 const cfg = {
                     baseUrl: this.elements.gptBaseUrl?.value || '',
                     model: this.elements.gptModel?.value || '',
-                    apiKey: this.elements.gptApiKey?.value || ''
+                    apiKey: this.elements.gptApiKey?.value || '',
+                    timeoutMs: document.getElementById('gptTimeoutMs')?.value || 30000,
+                    fallbackEnabled: !!document.getElementById('gptFallbackEnabled')?.checked,
+                    fallbackBaseUrl: document.getElementById('gptFallbackBaseUrl')?.value || '',
+                    fallbackModel: document.getElementById('gptFallbackModel')?.value || '',
+                    fallbackApiKey: document.getElementById('gptFallbackApiKey')?.value || ''
                 };
                 try {
                     const onlyEl = document.getElementById('cfgGptOnlyModeCheckbox');
@@ -977,7 +987,12 @@ const UI = {
                 const cfg = {
                     baseUrl: this.elements.gptBaseUrl?.value || '',
                     model: this.elements.gptModel?.value || '',
-                    apiKey: this.elements.gptApiKey?.value || ''
+                    apiKey: this.elements.gptApiKey?.value || '',
+                    timeoutMs: document.getElementById('gptTimeoutMs')?.value || 30000,
+                    fallbackEnabled: !!document.getElementById('gptFallbackEnabled')?.checked,
+                    fallbackBaseUrl: document.getElementById('gptFallbackBaseUrl')?.value || '',
+                    fallbackModel: document.getElementById('gptFallbackModel')?.value || '',
+                    fallbackApiKey: document.getElementById('gptFallbackApiKey')?.value || ''
                 };
                 try {
                     const result = await App.testGPTSettings(cfg);
@@ -2465,32 +2480,15 @@ if (UI.elements.cfgImportAllPromptsBtn) {
         const apiKey = (gptCfg.apiKey || '').trim();
         const model = (gptCfg.model || '').trim();
         if (!(baseInput && model)) return '';
-        let base = baseInput.replace(/\/$/, '');
-        // 强制 https（允许本地 http）
-        if (/^http:\/\//i.test(base)) {
-            const isLocal = /^http:\/\/(localhost(?::\d+)?|127\.\d+\.\d+\.\d+(?::\d+)?|10\.\d+\.\d+\.\d+(?::\d+)?|192\.168\.\d+\.\d+(?::\d+)?)/i.test(base);
-            if (!isLocal) {
-                base = base.replace(/^http:\/\//i, 'https://');
-                console.warn('UI.fetchGPTBrief: 非本地 HTTP 基础地址已自动升级为 HTTPS');
-            }
-        }
-        if (!/\/v1\/?$/.test(base)) base = base + '/v1';
-        const url = base + '/chat/completions';
         try {
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(apiKey ? { Authorization: 'Bearer ' + apiKey } : {}) },
-                body: JSON.stringify({
-                    model: model,
+            const result = await GoldWordAPI.chat(gptCfg, {
                     messages: [
                         ...(gptCfg.systemPrompt ? [{ role: 'system', content: gptCfg.systemPrompt }] : []),
                         { role: 'user', content: finalPrompt }
                     ],
                     temperature: (typeof gptCfg.temperature === 'number' ? gptCfg.temperature : 0.2)
-                })
             });
-            const data = await resp.json();
-            const txt = data?.choices?.[0]?.message?.content?.trim();
+            const txt = result.content?.trim();
             return txt || '';
         } catch (_) {
             return '';
