@@ -304,14 +304,7 @@ class WordEnhancementService {
                 model: this.gptConfig.model || 'gpt-4o-mini'
             });
             
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.gptConfig.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: this.gptConfig.model || 'gpt-4o-mini',
+            const result = await GoldWordAPI.chat(this.gptConfig, {
                     messages: [
                         {
                             role: 'user',
@@ -320,23 +313,8 @@ class WordEnhancementService {
                     ],
                     temperature: 0.3,
                     max_tokens: 1000
-                })
             });
-
-            console.log('GPT响应状态:', {
-                status: response.status,
-                statusText: response.statusText,
-                ok: response.ok
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('GPT API 错误响应:', errorText);
-                throw new Error(`GPT API 请求失败: ${response.status} - ${errorText}`);
-            }
-
-            // 解析JSON；若返回非JSON（例如HTML）会抛错
-            const data = await response.json();
+            const data = result.data;
             const content = data.choices[0]?.message?.content;
             
             if (!content) {
@@ -408,24 +386,12 @@ class WordEnhancementService {
             // 输出字段提示词
             console.log(`字段 ${field} 提示词:`, prompt);
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.gptConfig.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: this.gptConfig.model || 'gpt-4o-mini',
+            const result = await GoldWordAPI.chat(this.gptConfig, {
                     messages: [{ role: 'user', content: prompt }],
                     temperature: 0.3,
                     max_tokens: 400
-                })
             });
-            if (!response.ok) {
-                console.error(`字段 ${field} GPT查询失败:`, response.status, response.statusText);
-                return null;
-            }
-            const data = await response.json();
+            const data = result.data;
             const content = data.choices[0]?.message?.content;
             if (!content) return null;
             console.log(`字段 ${field} 原始返回文本:`, content);
@@ -941,24 +907,12 @@ class WordEnhancementService {
             const apiUrl = base + '/chat/completions';
             // 简洁提示词：仅返回中文译文
             const prompt = `请把下列英文句子准确翻译为简体中文，仅返回中文译文，不要附加任何解释或引号：\n${t}`;
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.gptConfig.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: this.gptConfig.model || 'gpt-4o-mini',
+            const result = await GoldWordAPI.chat(this.gptConfig, {
                     messages: [{ role: 'user', content: prompt }],
                     temperature: 0.2,
                     max_tokens: 200
-                })
             });
-            if (!response.ok) {
-                console.error('翻译请求失败:', response.status, response.statusText);
-                return '';
-            }
-            const data = await response.json();
+            const data = result.data;
             const content = data.choices?.[0]?.message?.content || '';
             return String(content || '').trim();
         } catch (e) {

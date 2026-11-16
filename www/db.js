@@ -542,10 +542,6 @@ const DB = {
                 return false;
             }
         } catch(_){ }
-        // 管理员特殊账号：不依赖用户表，直接校验固定密码
-        if (id === 'caishen') {
-            return (password || '') === 'ilovecaishen';
-        }
         const user = (this.users || {})[id];
         return !!user && (user.password === (password || ''));
     },
@@ -574,8 +570,6 @@ const DB = {
     listUsers: function() {
         const users = this.users || {};
         const arr = Object.keys(users).map(k => ({ id: k, name: users[k].name || k }));
-        // 管理员账号不在用户表中也可登录，这里附加展示（不暴露密码）
-        if (!arr.find(u => u.id === 'caishen')) arr.unshift({ id: 'caishen', name: '管理员' });
         return arr;
     },
     /**
@@ -665,21 +659,22 @@ const DB = {
         } catch (_) {
             cfg = {};
         }
-        const hasBase = !!(cfg.baseUrl && String(cfg.baseUrl).trim());
-        const hasModel = !!(cfg.model && String(cfg.model).trim());
-        if (!hasBase || !hasModel) {
-            const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '';
-            const isAndroid = /Android/i.test(ua);
-            const defBase = isAndroid ? 'http://10.0.2.2:8001' : 'http://127.0.0.1:8001';
-            cfg.baseUrl = hasBase ? String(cfg.baseUrl).trim() : defBase;
-            cfg.model = hasModel ? String(cfg.model).trim() : 'mock-4o-mini';
-            cfg.apiKey = cfg.apiKey != null ? String(cfg.apiKey) : '';
-            SA.setJSON(key, cfg);
-        }
+        cfg.baseUrl = String(cfg.baseUrl || 'https://api.caisheng.art/v1');
+        cfg.model = String(cfg.model || 'gpt-4o-mini');
+        cfg.apiKey = cfg.apiKey != null ? String(cfg.apiKey) : '';
         return {
-            baseUrl: String(cfg.baseUrl || ''),
+            baseUrl: cfg.baseUrl,
             apiKey: String(cfg.apiKey || ''),
-            model: String(cfg.model || '')
+            model: cfg.model,
+            timeoutMs: Number(cfg.timeoutMs) || 30000,
+            fallbackEnabled: !!cfg.fallbackEnabled,
+            fallbackBaseUrl: String(cfg.fallbackBaseUrl || ''),
+            fallbackModel: String(cfg.fallbackModel || ''),
+            fallbackApiKey: String(cfg.fallbackApiKey || ''),
+            systemPrompt: String(cfg.systemPrompt || ''),
+            temperature: typeof cfg.temperature === 'number' ? cfg.temperature : 0.2,
+            useCustomFieldPrompts: !!cfg.useCustomFieldPrompts,
+            gptOnlyMode: !!cfg.gptOnlyMode
         };
     },
     /**
@@ -713,6 +708,13 @@ const DB = {
         if (settings && ('model' in settings)) {
             merged.model = (settings.model || '').toString().trim();
         }
+        if (settings && ('timeoutMs' in settings)) {
+            merged.timeoutMs = Math.min(120000, Math.max(3000, Number(settings.timeoutMs) || 30000));
+        }
+        for (const field of ['fallbackBaseUrl', 'fallbackModel', 'fallbackApiKey']) {
+            if (settings && field in settings) merged[field] = String(settings[field] || '').trim();
+        }
+        if (settings && ('fallbackEnabled' in settings)) merged.fallbackEnabled = !!settings.fallbackEnabled;
         if (settings && ('systemPrompt' in settings)) {
             merged.systemPrompt = settings.systemPrompt != null ? String(settings.systemPrompt) : '';
         }

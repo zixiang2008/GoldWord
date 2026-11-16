@@ -1,5 +1,10 @@
 .backups/
 node_modules
+.toolchains/
+.android-sdk/
+local-config/
+*.apk
+*.aab
 
 # Local Netlify folder
 .netlify

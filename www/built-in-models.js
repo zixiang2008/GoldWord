@@ -1,5 +1,6 @@
 // 打包版共享内置模型列表与标签渲染器（与根目录版本保持一致）
 window.BUILT_IN_MODELS_LIST = [
+    'https://api.caisheng.art/v1/chat/completions,gpt-4o-mini,财绅 OpenAI 兼容网关（默认；密钥仅在本机填写）,自有',
     'https://api.apiyi.com/v1/chat/completions,gpt-4o,OpenAI 最强多模态旗舰，支持图像输入,收费',
     'https://api.apiyi.com/v1/chat/completions,gpt-4o-mini,轻量高效，性价比最高,收费',
     'https://api.apiyi.com/v1/chat/completions,gpt-5-chat-latest,实验性下一代模型（预览）,收费',

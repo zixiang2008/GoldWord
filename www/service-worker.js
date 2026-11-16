@@ -1,5 +1,5 @@
 // 缓存名称和版本（提升版本以强制客户端清理旧缓存与激活新策略）
-const CACHE_NAME = 'goldword-cache-v4';
+const CACHE_NAME = 'goldword-cache-v5';
 
 // 需要缓存的资源列表（不缓存 index.html，避免页面更新被旧缓存拦截）
 // 将 /debug.html 纳入预缓存，确保在离线或网络波动时可直接打开调试页
@@ -8,6 +8,11 @@ const urlsToCache = [
     '/db.js',
     '/app.js',
     '/ui.js',
+    '/api-client.js',
+    '/word-enhancement-service.js',
+    '/built-in-models.js',
+    '/built-in-words.js',
+    '/local-dictionary.json',
     '/manifest.json',
     '/debug.html'
 ];

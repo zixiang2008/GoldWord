@@ -31,6 +31,7 @@ const App = {
     replayCounts: {},
     // 发音开关（开启时在自动播放半程进行朗读；按钮可切换）
     speakEnabled: true,
+    speechInProgress: false,
 
     // 从旧版页面内联数据导入词库
     importLegacyWords: function() {
@@ -185,6 +186,9 @@ const App = {
 
     // 学习模式：按下按钮根据选择执行朗读序列
     runLearnMode: async function() {
+        if (this.speechInProgress) return;
+        this.speechInProgress = true;
+        try {
         const mode = UI.elements.learnMode ? UI.elements.learnMode.value : 'en1';
         const current = this.words[this.currentIndex] ? this.words[this.currentIndex].word : '';
         if (!current) return;
@@ -228,6 +232,9 @@ const App = {
             default:
                 await speakOnce();
                 break;
+        }
+        } finally {
+            this.speechInProgress = false;
         }
     },
     
@@ -519,40 +526,16 @@ const App = {
                 alert('请在“GPT 服务设置”中填写基础地址、模型名与 API 密钥');
                 return '';
             }
-            // 规范并强制安全：仅允许本地 http，其余一律升级为 https
-            let base = baseUrlInput.replace(/\/$/, '');
-            if (/^http:\/\//i.test(base)) {
-                const isLocal = /^http:\/\/(localhost(?::\d+)?|127\.\d+\.\d+\.\d+(?::\d+)?|10\.\d+\.\d+\.\d+(?::\d+)?|192\.168\.\d+\.\d+(?::\d+)?)/i.test(base);
-                if (!isLocal) {
-                    base = base.replace(/^http:\/\//i, 'https://');
-                    console.warn('检测到非本地 HTTP 基础地址，已自动升级为 HTTPS');
-                }
-            }
-            if (!/\/v1\/?$/.test(base)) base = base + '/v1';
-            const url = base + '/chat/completions';
             const systemPrompt = (cfg.system_prompt || 'You extract distinct English words and output only a comma-separated list. No explanations. No extra text.').slice(0, 2000);
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + apiKey
-                },
-                body: JSON.stringify({
-                    model,
+            const result = await GoldWordAPI.chat(cfg, {
                     messages: [
                         { role: 'system', content: systemPrompt },
                         { role: 'user', content: 'Extract distinct English words from the following text and return ONLY a comma-separated list:\n\n' + String(text).slice(0, 8000) }
                     ],
                     max_tokens: Math.min(1024, cfg.max_tokens || 512),
                     temperature: typeof cfg.temperature === 'number' ? cfg.temperature : 0
-                })
             });
-            if (!resp.ok) {
-                const t = await resp.text().catch(() => '');
-                throw new Error('HTTP ' + resp.status + ' ' + resp.statusText + ' ' + t);
-            }
-            const data = await resp.json();
-            let reply = data?.choices?.[0]?.message?.content || '';
+            let reply = result.content || '';
             reply = reply.replace(/[\n\r]+/g, ' ').replace(/[;、，]/g, ',').replace(/\s*,\s*/g, ',').replace(/\s+/g, ' ').trim();
             if (UI.elements && UI.elements.jsonInput) {
                 UI.elements.jsonInput.value = reply;
@@ -720,45 +703,16 @@ const App = {
         if (!baseUrlInput || !apiKey || !model) {
             return { ok: false, error: '请填写基础地址、模型名与 API 密钥' };
         }
-        // 规范化基础地址并强制 https（本地开发例外）
-        let base = baseUrlInput.replace(/\/$/, '');
-        if (/^http:\/\//i.test(base)) {
-            const isLocal = /^http:\/\/(localhost(?::\d+)?|127\.\d+\.\d+\.\d+(?::\d+)?|10\.\d+\.\d+\.\d+(?::\d+)?|192\.168\.\d+\.\d+(?::\d+)?)/i.test(base);
-            if (!isLocal) {
-                base = base.replace(/^http:\/\//i, 'https://');
-                console.warn('测试设置：非本地 HTTP 基础地址已自动升级为 HTTPS');
-            }
-        }
-        if (!/\/v1\/?$/.test(base)) {
-            base = base + '/v1';
-        }
-        const url = base + '/chat/completions';
-        
-        console.log('GPT测试请求URL:', url);
         try {
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + apiKey
-                },
-                body: JSON.stringify({
-                    model,
+            const result = await GoldWordAPI.chat(cfg, {
                     messages: [
                         { role: 'system', content: 'You are a helpful assistant.' },
                         { role: 'user', content: '只回复：设置已连接' }
                     ],
                     max_tokens: 16,
                     temperature: 0
-                })
             });
-            if (!resp.ok) {
-                const text = await resp.text().catch(() => '');
-                return { ok: false, error: `HTTP ${resp.status} ${resp.statusText} ${text}` };
-            }
-            const data = await resp.json();
-            const reply = data?.choices?.[0]?.message?.content || '';
-            return { ok: true, reply };
+            return { ok: true, reply: result.content, provider: result.provider };
         } catch (e) {
             return { ok: false, error: e.message || String(e) };
         }
@@ -817,7 +771,7 @@ const App = {
             }
 
             if (remaining <= 0) {
-                if (window.speechSynthesis && window.speechSynthesis.speaking) { return; }
+                if (this.speechInProgress || (window.speechSynthesis && window.speechSynthesis.speaking)) { return; }
                 this.stopCountdown();
                 if (!isBack) {
                     // 正面倒计时结束：翻到背面并重新倒计时
@@ -881,7 +835,7 @@ const App = {
             }
             
             if (remaining <= 0) {
-                if (window.speechSynthesis && window.speechSynthesis.speaking) { return; }
+                if (this.speechInProgress || (window.speechSynthesis && window.speechSynthesis.speaking)) { return; }
                 this.stopCountdown();
                 if (!isBack) {
                     this.flipCard();
@@ -929,6 +883,12 @@ const App = {
         if (this.autoPlayEnabled) {
             this.startCountdown();
         } else {
+            try {
+                const tts = window.Capacitor?.Plugins?.TextToSpeech;
+                if (tts?.stop) tts.stop();
+                if (window.speechSynthesis?.cancel) window.speechSynthesis.cancel();
+            } catch (_) {}
+            this.speechInProgress = false;
             this.stopCountdown();
         }
     },
