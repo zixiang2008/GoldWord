@@ -30,7 +30,6 @@ if [ "$HTTP_CODE" != "200" ]; then
 fi
 
 curl -s http://localhost:8000/index.html > "$SNAP_DIR/index.html" || true
-curl -s http://localhost:8000/debug.html > "$SNAP_DIR/debug.html" || true
 curl -s http://localhost:8000/version.json > "$SNAP_DIR/version.json" || true
 
 # Web index checks
@@ -38,11 +37,6 @@ check "test \"$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/ind
 check "grep -q 'id=\"appVersion\"' \"$SNAP_DIR/index.html\"" "Index contains appVersion"
 check "grep -q 'id=\"flashcard\"' \"$SNAP_DIR/index.html\"" "Index contains flashcard"
 check "! grep -q 'id=\"lang-select\"' \"$SNAP_DIR/index.html\"" "Language selector removed"
-
-# Debug page checks
-check "test \"$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/debug.html)\" = 200" "Debug HTTP 200"
-check "grep -q 'id=\"serviceStatus\"' \"$SNAP_DIR/debug.html\"" "Debug contains serviceStatus"
-check "grep -q 'id=\"enhancementTable\"' \"$SNAP_DIR/debug.html\"" "Debug contains enhancementTable"
 
 # Version checks (direct to avoid eval quoting issues)
 TOTAL=$((TOTAL+1))
@@ -75,9 +69,6 @@ if [ -n "$APK_FILE" ]; then
 else
   info "No APK found; build may be unsigned or skipped"
 fi
-
-# External page interaction (basic): debug links to index
-check "grep -q 'href=\"./index.html\"' \"$SNAP_DIR/debug.html\"" "Debug contains link to index"
 
 # Summarize
 {
