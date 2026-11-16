@@ -1,36 +1,199 @@
-# Release Report 1.0.5
-- Time: 2025-11-24T11:46:37.571Z
-- Previous Tag: rollback_1.0.5
+# Release Report 2.0.1
+- Time: 2026-11-16T14:53:42.020Z
+- Previous Tag: N/A
 
 ## Changed Files
-- (none)
+- .github/workflows/android.yml
+- .github/workflows/build-ios.yml
+- .github/workflows/build-win.yml
+- .github/workflows/card-page-validation.yml
+- .github/workflows/release.yml
+- .github/workflows/versioning.yml
+- .gitignore
+- .trae/rules/project_rules.md
+- .vercel/project.json
+- .vercelignore
+- 404.html
+- AGENTS.md
+- PROJECT_GUIDE.md
+- README.en.md
+- README.md
+- RELEASE_NOTES.md
+- _headers
+- _redirects
+- android/.gitignore
+- android/app/.gitignore
+- android/app/build.gradle
+- android/app/capacitor.build.gradle
+- android/app/proguard-rules.pro
+- android/app/src/androidTest/java/com/getcapacitor/myapp/ExampleInstrumentedTest.java
+- android/app/src/main/AndroidManifest.xml
+- android/app/src/main/java/com/goldword/app/MainActivity.java
+- android/app/src/main/res/drawable-land-hdpi/splash.png
+- android/app/src/main/res/drawable-land-mdpi/splash.png
+- android/app/src/main/res/drawable-land-xhdpi/splash.png
+- android/app/src/main/res/drawable-land-xxhdpi/splash.png
+- android/app/src/main/res/drawable-land-xxxhdpi/splash.png
+- android/app/src/main/res/drawable-port-hdpi/splash.png
+- android/app/src/main/res/drawable-port-mdpi/splash.png
+- android/app/src/main/res/drawable-port-xhdpi/splash.png
+- android/app/src/main/res/drawable-port-xxhdpi/splash.png
+- android/app/src/main/res/drawable-port-xxxhdpi/splash.png
+- android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml
+- android/app/src/main/res/drawable/ic_launcher_background.xml
+- android/app/src/main/res/drawable/splash.png
+- android/app/src/main/res/layout/activity_main.xml
+- android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+- android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+- android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+- android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png
+- android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+- android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+- android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png
+- android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+- android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+- android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png
+- android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+- android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+- android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png
+- android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+- android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+- android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png
+- android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+- android/app/src/main/res/values/ic_launcher_background.xml
+- android/app/src/main/res/values/strings.xml
+- android/app/src/main/res/values/styles.xml
+- android/app/src/main/res/xml/file_paths.xml
+- android/app/src/main/res/xml/network_security_config.xml
+- android/app/src/test/java/com/getcapacitor/myapp/ExampleUnitTest.java
+- android/build.gradle
+- android/capacitor.settings.gradle
+- android/gradle.properties
+- android/gradle/wrapper/gradle-wrapper.jar
+- android/gradle/wrapper/gradle-wrapper.properties
+- android/gradlew
+- android/gradlew.bat
+- android/settings.gradle
+- android/variables.gradle
+- api-settings-guide.html
+- app-cdn.html
+- app/downloads.html
+- app/index.html
+- capacitor.config.json
+- cdn-links-generated.json
+- cdn-mapping-config.json
+- cloud-storage-sync.js
+- cloud-sync-server.js
+- docs/CHANGELOG.md
+- docs/android-delivery.md
+- docs/app-cdn.html
+- docs/card-page-open-guide.md
+- docs/ci-android-sdk-signing.md
+- docs/conventions.md
+- docs/diagnostics/android-diag-2025-11-29.md
+- docs/docs/version-mac.json
+- docs/mac-installation.md
+- docs/release-notes-v1.0.5.md
+- docs/release-notes-v1.0.6.md
+- docs/version-mac.json
+- downloads-cdn.html
+- downloads.html
+- easy-download.html
+- electron/main.js
+- electron/preload.js
+- github-downloads.html
+- ios/.gitignore
+- ios/App/App.xcodeproj/project.pbxproj
+- ios/App/App.xcworkspace/contents.xcworkspacedata
+- ios/App/App.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+- ios/App/App/AppDelegate.swift
+- ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+- ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json
+- ios/App/App/Assets.xcassets/Contents.json
+- ios/App/App/Assets.xcassets/Splash.imageset/Contents.json
+- ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png
+- ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-2.png
+- ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png
+- ios/App/App/Base.lproj/LaunchScreen.storyboard
+- ios/App/App/Base.lproj/Main.storyboard
+- ios/App/App/Info.plist
+- ios/App/Podfile
+- ios/App/Podfile.lock
+- language-system/README.md
+- language-system/language-system-complete-updated.js
+- latest-version.json
+- mac/Info.plist
+- mac/build/launcher_arm64
+- mac/build/launcher_x64
+- mac/build_app.sh
+- mac/entitlements.plist
+- mac/launcher.c
+- mac/sign_and_notarize.sh
+- netlify-backup.toml
+- netlify-fixed.toml
+- netlify.toml
+- package-lock.json
+- package.json
+- redirect-to-cdn.js
+- release-report.json
+- scripts/adb-diagnostics.js
+- scripts/apksign_report.py
+- scripts/auto-rollback-daemon.js
+- scripts/build-web.js
+- scripts/build_installers.sh
+- scripts/copy-dist-to-downloads.js
+- scripts/create-rollback.js
+- scripts/ensure-install-dirs.js
+- scripts/export-pepk.js
+- scripts/export_cert_chain.sh
+- scripts/feature-rollback.js
+- scripts/generate-downloads-index.js
+- scripts/generate-release-report.js
+- scripts/open-card-page.js
+- scripts/publish-release.js
+- scripts/release-standardize.js
+- scripts/release.sh
+- scripts/signing-audit.js
+- scripts/signing-verify.js
+- scripts/test-card-page.js
+- scripts/test-core.js
+- scripts/test_run.sh
+- scripts/update-release-notes.js
+- scripts/verify-cloudflare-token.js
+- scripts/version-backup.js
+- simple-download.html
+- vercel.json
+- wrangler.toml
+- www/api-client.js
+- www/api-settings-guide.html
+- www/app.js
+- www/built-in-models.js
+- www/built-in-words.js
+- www/db.js
+- www/docs/screenshots/home-desktop.png
+- www/docs/screenshots/home-mobile.png
+- www/docs/screenshots/settings-gpt-desktop.png
+- www/docs/screenshots/settings-mobile.png
+- www/docs/screenshots/settings-top-desktop.png
+- www/docs/screenshots/settings-words-desktop.png
+- www/docs/version-mac.json
+- www/downloads/latest.json
+- www/i18n.js
+- www/icons/icon-152x152.svg
+- www/icons/icon-192x192.png
+- www/icons/icon-512x512.png
+- www/index.html
+- www/language-system.json
+- www/local-dictionary.json
+- www/manifest.json
+- www/service-worker.js
+- www/storage.js
+- www/ui.js
+- www/version.js
+- www/version.json
+- www/visit-backup.js
+- www/word-enhancement-service.js
+- www/word-schema.js
 
 ## Commits
 - (none)
-\n## Automation Verification
-- Version bumped to `1.0.5` (semver patch)
-- Local rollback tag created: `rollback_1.0.5` (push handled by CI)
-- Reports generated: `release-report.json`, `RELEASE_NOTES.md`
-
-## APK Build & Validation
-- Built unsigned APK: `android/app/build/outputs/apk/release/app-release-unsigned.apk`
-- Signed APK: `android/app/build/outputs/apk/release/app-release-signed.apk`
-- Manifest check: `versionName=1.0.5`, `applicationId=com.goldword.app`
-- Icon resources present across densities (mdpi–xxxhdpi)
-- Splash screens present (`drawable-port/*` and `drawable-land/*`)
- 
-## Installer Packaging (1.0.5)
-- macOS: Built `GoldWord-1.0.5-arm64.dmg`, `GoldWord-1.0.5-arm64-mac.zip` and `.pkg` via `pkgbuild/productbuild`
-- Windows: Built portable `GoldWord 1.0.5.exe`
-- Android: Consolidated APKs, retained `goldword-android-pad-1.0.5.apk` as latest
-
-## Signing Status
-- Android: V1 (JAR) signature present (SHA256withRSA). V2/V3 pending (requires `apksigner`)
-- macOS: App signed by local identity; notarization skipped
-- Windows: Code signing pending (requires `signtool` and certificate)
-- iOS: Not built in this run; signing pending (requires Fastlane match and profiles)
-
-## Distribution Indexes
-- Updated `downloads/latest.json` to `1.0.5`
-- Standardized version directory: `downloads/1.0.5/`
-- Generated `downloads/1.0.5/index.json` with checksums
